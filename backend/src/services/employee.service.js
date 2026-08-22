@@ -54,6 +54,7 @@ export const createEmployee = async (employeeData) => {
   // Save employee
   const newUser = await userRepository.create({
     employeeId,
+    loginId: employeeId,
     companyId: company._id,
     firstName,
     lastName,
@@ -181,6 +182,8 @@ export const updateEmployee = async (id, updateData) => {
     email: updatedUser.email,
     phone: updatedUser.phone,
     role: updatedUser.role,
+    accountStatus: updatedUser.accountStatus,
+    loginId: updatedUser.loginId,
     joiningDate: updatedUser.joiningDate,
     isActive: updatedUser.isActive,
     isFirstLogin: updatedUser.isFirstLogin,

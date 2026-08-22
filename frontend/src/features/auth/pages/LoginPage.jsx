@@ -76,58 +76,54 @@ export function LoginPage() {
       setIsLoading(false)
     }
   }
-
-
-
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         {/* Brand */}
-        <div className="text-center space-y-1">
-          <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-700 text-white font-mono font-bold text-lg mb-2 shadow-sm">
-            D
+        <div className="text-center space-y-2">
+          <div className="mx-auto flex h-14 w-full max-w-[200px] items-center justify-center rounded-xl bg-slate-100 border border-slate-200 text-slate-700 font-mono font-bold text-sm tracking-wider shadow-inner">
+            App/Web Logo
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Sign in to Dayflow</h1>
-          <p className="text-xs text-slate-500">Every workday, perfectly aligned.</p>
         </div>
 
         {/* Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Authentication</CardTitle>
-            <CardDescription className="text-xs">
-              Enter your corporate email or Employee ID.
+        <Card className="bg-white border-slate-200 text-slate-900 shadow-sm rounded-xl">
+          <CardHeader className="border-b border-slate-100 pb-4">
+            <CardTitle className="text-base font-bold text-slate-900">Sign in Page</CardTitle>
+            <CardDescription className="text-xs text-slate-500">
+              Enter your credentials to access your Dayflow workspace.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-5">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {apiError && (
                 <div className="flex items-center gap-2 p-3 rounded-md bg-red-50 border border-red-200 text-xs text-red-700">
-                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
                   <span>{apiError}</span>
                 </div>
               )}
 
-              <div className="space-y-1">
-                <Label required>Email or Employee ID</Label>
+              <div className="space-y-1.5">
+                <Label className="text-slate-700 text-xs font-semibold tracking-wider block">Login Id/Email :-</Label>
                 <Input
                   placeholder="name@company.com or EMP-1001"
-                  leftIcon={<Mail className="h-4 w-4" />}
+                  leftIcon={<Mail className="h-4 w-4 text-slate-400" />}
+                  className="bg-white border-slate-200 text-slate-900 placeholder-slate-400"
                   error={!!errors.login}
                   {...register('login')}
                 />
                 {errors.login && <p className="text-[11px] text-red-500">{errors.login.message}</p>}
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label required>Password</Label>
-                  <a href="#" className="text-xs text-blue-600 hover:underline">Forgot password?</a>
+                  <Label className="text-slate-700 text-xs font-semibold tracking-wider block">Password :-</Label>
+                  <a href="#" className="text-xs text-purple-600 hover:text-purple-750 hover:underline">Forgot password?</a>
                 </div>
                 <Input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  leftIcon={<Lock className="h-4 w-4" />}
+                  leftIcon={<Lock className="h-4 w-4 text-slate-400" />}
                   rightIcon={
                     <button
                       type="button"
@@ -137,6 +133,7 @@ export function LoginPage() {
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   }
+                  className="bg-white border-slate-200 text-slate-900 placeholder-slate-400"
                   error={!!errors.password}
                   {...register('password')}
                 />
@@ -145,21 +142,21 @@ export function LoginPage() {
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full mt-3 bg-purple-600 hover:bg-purple-750 text-white shadow-xs py-2 rounded-lg font-bold uppercase tracking-wider text-xs transition-colors duration-150 border-0"
                 isLoading={isLoading}
                 rightIcon={<ArrowRight className="h-4 w-4" />}
               >
-                Sign In to Workspace
+                SIGN IN
               </Button>
             </form>
           </CardContent>
           <CardFooter className="flex flex-col gap-3 pt-4 border-t border-slate-100 bg-slate-50/50">
             <div className="flex items-center justify-between w-full text-xs text-slate-500 pt-1">
-              <Link to={ROUTES.PUBLIC.SIGNUP} className="hover:text-slate-800">
+              <Link to={ROUTES.PUBLIC.SIGNUP} className="hover:text-slate-800 hover:underline text-purple-600">
                 Activate Account
               </Link>
-              <Link to={ROUTES.PUBLIC.COMPANY_SIGNUP} className="text-blue-600 font-semibold hover:underline flex items-center gap-1">
-                <Building2 className="h-3.5 w-3.5" /> Register Company
+              <Link to={ROUTES.PUBLIC.COMPANY_SIGNUP} className="text-purple-600 font-semibold hover:underline flex items-center gap-1">
+                <Building2 className="h-3.5 w-3.5" /> Don't have an Account? Sign Up
               </Link>
             </div>
           </CardFooter>

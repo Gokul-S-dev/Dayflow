@@ -43,12 +43,12 @@ export function AdminDashboardPage() {
     loadAdminDash()
   }, [])
 
-  const kpis = data?.kpis || {
-    totalEmployees: 142,
-    presentToday: 134,
-    onLeaveToday: 5,
-    absentToday: 3,
-    pendingApprovals: 5,
+  const kpis = {
+    totalEmployees: data?.summary?.totalEmployees ?? 0,
+    presentToday: data?.summary?.presentToday ?? 0,
+    onLeaveToday: data?.summary?.onLeaveToday ?? 0,
+    absentToday: data?.summary?.absentToday ?? 0,
+    pendingApprovals: data?.summary?.pendingLeaveRequests ?? 0,
   }
 
   const attendanceTrend = data?.attendanceTrend || [
@@ -73,11 +73,38 @@ export function AdminDashboardPage() {
     { department: 'Design', rate: 94.0 },
   ]
 
-  const activities = data?.recentActivities || [
-    { id: 'act1', user: 'Eleanor Morgan', action: 'Checked in at 09:02 AM', time: '10 mins ago' },
-    { id: 'act2', user: 'Marcus Chen', action: 'Submitted Sick Leave request', time: '25 mins ago' },
-    { id: 'act3', user: 'Alexandra Vance', action: 'Approved annual leave for Amina Larsson', time: '1 hour ago' },
-  ]
+  const activities = []
+  if (data?.recentAttendance && data.recentAttendance.length > 0) {
+    data.recentAttendance.slice(0, 5).forEach((att) => {
+      activities.push({
+        id: `att-${att.id || Math.random()}`,
+        user: att.employee?.name || 'Employee',
+        action: att.status === 'CHECKED_IN'
+          ? `Checked in at ${att.checkInTime ? new Date(att.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}`
+          : `Checked out at ${att.checkOutTime ? new Date(att.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}`,
+        time: att.checkInTime ? new Date(att.checkInTime).toLocaleDateString() : 'Today'
+      })
+    })
+  }
+  if (data?.pendingLeaves && data.pendingLeaves.length > 0) {
+    data.pendingLeaves.slice(0, 5).forEach((lv) => {
+      activities.push({
+        id: `lv-${lv.id || Math.random()}`,
+        user: lv.employee?.name || 'Employee',
+        action: `Submitted ${lv.leaveType} Leave request`,
+        time: 'Pending'
+      })
+    })
+  }
+
+  // Fallback to static dummy list if no activity records from backend yet
+  if (activities.length === 0) {
+    activities.push(
+      { id: 'act1', user: 'Eleanor Morgan', action: 'Checked in at 09:02 AM', time: '10 mins ago' },
+      { id: 'act2', user: 'Marcus Chen', action: 'Submitted Sick Leave request', time: '25 mins ago' },
+      { id: 'act3', user: 'Alexandra Vance', action: 'Approved annual leave for Amina Larsson', time: '1 hour ago' }
+    )
+  }
 
   return (
     <PageContainer

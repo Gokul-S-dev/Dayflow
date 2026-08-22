@@ -147,9 +147,12 @@ export function Sidebar() {
       <div className="p-3 border-t border-slate-100 space-y-2 bg-slate-50/40">
         {!sidebarCollapsed ? (
           <div className="flex items-center justify-between p-1.5 rounded-md hover:bg-slate-100/60 transition-colors">
-            <div className="flex items-center gap-2.5 min-w-0">
+            <div 
+              onClick={() => navigate(ROUTES.EMPLOYEE.PROFILE)}
+              className="flex items-center gap-2.5 min-w-0 cursor-pointer hover:opacity-85"
+            >
               <Avatar size="sm">
-                <AvatarFallback className="bg-blue-100 text-blue-800 text-xs">
+                <AvatarFallback className="bg-purple-100 text-purple-700 text-xs">
                   {user?.name
                     ? user.name
                         .split(' ')
@@ -175,8 +178,12 @@ export function Sidebar() {
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
-            <Avatar size="sm">
-              <AvatarFallback className="bg-blue-100 text-blue-800 text-xs">
+            <Avatar 
+              size="sm"
+              onClick={() => navigate(ROUTES.EMPLOYEE.PROFILE)}
+              className="cursor-pointer hover:ring-2 hover:ring-purple-600 transition-all"
+            >
+              <AvatarFallback className="bg-purple-100 text-purple-700 text-xs">
                 {user?.name
                   ? user.name
                       .split(' ')

@@ -29,7 +29,7 @@ export const signup = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: "Account activated successfully.",
+      message: "Signup successful. Please verify your email.",
       data: result
     });
   } catch (err) {
@@ -55,7 +55,29 @@ export const signupCompany = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: "Company and HR account created successfully.",
+      message: "Company and HR account created successfully. Please verify your email.",
+      data: result
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const verifyEmail = async (req, res, next) => {
+  try {
+    const { token } = req.query;
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "Verification token is required"
+      });
+    }
+
+    const result = await authService.verifyEmail(token);
+
+    res.status(200).json({
+      success: true,
+      message: "Email verified successfully. You can now log in.",
       data: result
     });
   } catch (err) {

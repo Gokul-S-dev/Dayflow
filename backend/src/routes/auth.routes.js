@@ -14,6 +14,7 @@ const router = Router();
 router.post("/login", validateLogin, authController.login);
 router.post("/signup", validateSignup, authController.signup);
 router.post("/signup-company", upload.single("logo"), validateSignupCompany, authController.signupCompany);
+router.get("/verify-email", authController.verifyEmail);
 router.post("/refresh", authController.refresh);
 router.post("/logout", protect, authController.logout);
 router.post("/change-password", protect, validateChangePassword, authController.changePassword);

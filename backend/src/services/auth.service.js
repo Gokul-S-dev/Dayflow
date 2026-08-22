@@ -1,11 +1,13 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import fs from "fs";
+import crypto from "crypto";
 import { env } from "../config/env.js";
 import * as userRepository from "../repositories/user.repository.js";
 import { AppError } from "../middleware/error.middleware.js";
 import { createCompany } from "./company.service.js";
 import { generateEmployeeNameCode, generateAtomicEmployeeId } from "../utils/idGenerator.js";
+import { sendVerificationEmail } from "./email.service.js";
 
 /**
  * Generates access and refresh tokens for a user.
@@ -34,16 +36,30 @@ export const generateTokens = (user) => {
 export const login = async (loginCredential, password) => {
   const user = await userRepository.findByEmailOrEmployeeId(loginCredential);
   if (!user) {
-    throw new AppError("Invalid email/employee ID or password", 401);
+    throw new AppError("Invalid email/login ID or password", 401);
   }
 
   if (!user.isActive) {
     throw new AppError("Your account has been deactivated. Please contact support.", 403);
   }
 
+  // 1. Password comparison
   const isMatch = await bcrypt.compare(password, user.passwordHash);
   if (!isMatch) {
-    throw new AppError("Invalid email/employee ID or password", 401);
+    throw new AppError("Invalid email/login ID or password", 401);
+  }
+
+  // 2. Email Verification Gate
+  if (!user.emailVerified) {
+    throw new AppError("Please verify your email before signing in.", 403);
+  }
+
+  // 3. Approval Gate
+  if (user.accountStatus === "PENDING") {
+    throw new AppError("Your account is awaiting HR approval.", 403);
+  }
+  if (user.accountStatus === "REJECTED") {
+    throw new AppError("Your account has not been approved. Please contact HR.", 403);
   }
 
   // Generate tokens
@@ -53,6 +69,7 @@ export const login = async (loginCredential, password) => {
     user: {
       id: user._id,
       employeeId: user.employeeId,
+      loginId: user.loginId || user.employeeId,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
@@ -73,7 +90,7 @@ export const signupEmployee = async (employeeId, email, password, role) => {
   }
 
   // Check if user is already active
-  if (user.passwordHash && !user.isFirstLogin) {
+  if (user.passwordHash && !user.isFirstLogin && user.emailVerified) {
     throw new AppError("Account already registered. Please login instead.", 400);
   }
 
@@ -85,12 +102,23 @@ export const signupEmployee = async (employeeId, email, password, role) => {
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash(password, salt);
 
-  // Update user and activate immediately
+  // Generate verification token
+  const token = crypto.randomBytes(32).toString("hex");
+  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+  // Update user and set to pending approval + unverified email
   const updatedUser = await userRepository.update(user._id, {
+    loginId: employeeId,
     passwordHash,
     isFirstLogin: false,
-    emailVerified: true
+    emailVerified: false,
+    accountStatus: "PENDING",
+    verificationToken: token,
+    verificationTokenExpires: expires
   });
+
+  // Send verification email
+  await sendVerificationEmail(updatedUser.email, token);
 
   return {
     user: {
@@ -98,7 +126,8 @@ export const signupEmployee = async (employeeId, email, password, role) => {
       employeeId: updatedUser.employeeId,
       email: updatedUser.email,
       role: updatedUser.role
-    }
+    },
+    verificationToken: token
   };
 };
 
@@ -128,9 +157,15 @@ export const signupCompany = async (companyData) => {
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash(password, salt);
 
-  // 4. Create user - activated immediately
+  // 4. Generate verification token
+  const token = crypto.randomBytes(32).toString("hex");
+  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+  // 5. Create user
+  // (The registrar is the primary admin of the workspace, so they are auto-approved but must still verify email)
   const newUser = await userRepository.create({
     employeeId,
+    loginId: employeeId,
     companyId: company._id,
     firstName,
     lastName,
@@ -140,9 +175,15 @@ export const signupCompany = async (companyData) => {
     role: role ? role.toUpperCase() : "HR",
     joiningDate: new Date(),
     isActive: true,
-    isFirstLogin: false, // since they registered themselves
-    emailVerified: true
+    isFirstLogin: false,
+    emailVerified: false,
+    accountStatus: "APPROVED",
+    verificationToken: token,
+    verificationTokenExpires: expires
   });
+
+  // Send verification email
+  await sendVerificationEmail(newUser.email, token);
 
   return {
     user: {
@@ -153,7 +194,33 @@ export const signupCompany = async (companyData) => {
       lastName: newUser.lastName,
       email: newUser.email,
       role: newUser.role
-    }
+    },
+    verificationToken: token
+  };
+};
+
+/**
+ * Verifies email via secure token lookup.
+ */
+export const verifyEmail = async (token) => {
+  const user = await userRepository.findByVerificationToken(token);
+  if (!user) {
+    throw new AppError("Invalid or expired verification token", 400);
+  }
+
+  // Update verification status
+  const updatedUser = await userRepository.update(user._id, {
+    emailVerified: true,
+    verificationToken: null,
+    verificationTokenExpires: null
+  });
+
+  return {
+    id: updatedUser._id,
+    employeeId: updatedUser.employeeId,
+    email: updatedUser.email,
+    emailVerified: updatedUser.emailVerified,
+    accountStatus: updatedUser.accountStatus
   };
 };
 

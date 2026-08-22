@@ -55,9 +55,26 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    loginId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
     emailVerified: {
       type: Boolean,
-      default: true,
+      default: false,
+    },
+    accountStatus: {
+      type: String,
+      enum: ["PENDING", "APPROVED", "REJECTED"],
+      default: "PENDING",
+    },
+    passwordResetToken: {
+      type: String,
+    },
+    passwordResetExpires: {
+      type: Date,
     },
     address: {
       type: String,

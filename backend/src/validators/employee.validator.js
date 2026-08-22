@@ -86,5 +86,10 @@ export const validateUpdateEmployee = (req, res, next) => {
     return next(new AppError("Role must be one of ADMIN, HR, or EMPLOYEE", 400));
   }
 
+  // Validate accountStatus if present
+  if (req.body.accountStatus && !["PENDING", "APPROVED", "REJECTED"].includes(req.body.accountStatus.toUpperCase())) {
+    return next(new AppError("accountStatus must be one of PENDING, APPROVED, or REJECTED", 400));
+  }
+
   next();
 };
