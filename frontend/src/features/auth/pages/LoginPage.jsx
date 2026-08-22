@@ -214,21 +214,21 @@ export function LoginPage() {
           </CardContent>
 
           <CardFooter className="flex justify-center pt-4 pb-5 border-t border-slate-100 bg-slate-50/50 mt-3">
-            <div className="flex items-center gap-1.5 text-xs text-slate-500">
-              <Building2 className="h-3.5 w-3.5 text-purple-500" />
-              <span>New to Dayflow?</span>
+            <p className="text-xs text-slate-500">
+              Don't have an account?{' '}
               <Link
                 to={ROUTES.PUBLIC.COMPANY_SIGNUP}
-                className="text-purple-600 font-semibold hover:underline hover:text-purple-700"
+                className="text-purple-600 font-semibold hover:underline hover:text-purple-700 inline-flex items-center gap-1"
               >
-                Register your company
+                <Building2 className="h-3 w-3" />
+                Sign Up
               </Link>
-            </div>
+            </p>
           </CardFooter>
         </Card>
 
-        <p className="text-center text-[11px] text-slate-400">
-          Employees receive login credentials from their HR administrator.
+        <p className="text-center text-[11px] text-slate-400 leading-relaxed">
+          Employees receive login credentials from their HR or Administrator.
         </p>
       </div>
     </div>
