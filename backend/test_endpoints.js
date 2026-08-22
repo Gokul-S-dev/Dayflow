@@ -49,7 +49,7 @@ const runTests = async () => {
     });
 
     // ========================================================
-    // PHASE 3: COMPANY SIGNUP & EMAIL VERIFICATION
+    // PHASE 5: COMPANY SIGNUP & IMMEDIATE LOGIN
     // ========================================================
 
     // --- TEST 1: Company Signup (Creates Company + HR User) ---
@@ -76,35 +76,10 @@ const runTests = async () => {
     if (signupRes.status !== 201 || !signupData.success) {
       throw new Error("Company + HR Signup failed");
     }
-    const hrVerificationToken = signupData.data.verificationToken;
     const hrEmployeeId = signupData.data.user.employeeId;
 
-    // --- TEST 2: Login Fails Before Email Verification ---
-    console.log("\n--- TEST 2: Login Fails Before Email Verification ---");
-    const preVerifyLoginRes = await fetch(`${BASE_URL}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        login: "hr@signup.com",
-        password: "HRSecurePass123!"
-      })
-    });
-    console.log("Status:", preVerifyLoginRes.status);
-    if (preVerifyLoginRes.status !== 403) {
-      throw new Error("Login should have failed with 403 due to unverified email");
-    }
-
-    // --- TEST 3: Email Verification Via Token ---
-    console.log("\n--- TEST 3: Email Verification Via Token ---");
-    const verifyRes = await fetch(`${BASE_URL}/auth/verify-email?token=${hrVerificationToken}`);
-    const verifyData = await verifyRes.json();
-    console.log("Status:", verifyRes.status);
-    if (verifyRes.status !== 200 || !verifyData.data.emailVerified) {
-      throw new Error("Email verification failed");
-    }
-
-    // --- TEST 4: Login Succeeds After Email Verification ---
-    console.log("\n--- TEST 4: Login Succeeds After Email Verification ---");
+    // --- TEST 2: Login Succeeds Immediately Without Verification ---
+    console.log("\n--- TEST 2: Login Succeeds Immediately Without Verification ---");
     const hrLoginRes = await fetch(`${BASE_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -116,18 +91,18 @@ const runTests = async () => {
     const hrLoginData = await hrLoginRes.json();
     console.log("Status:", hrLoginRes.status);
     if (hrLoginRes.status !== 200 || !hrLoginData.success) {
-      throw new Error("HR login failed after email verification");
+      throw new Error("HR login failed immediately after registration");
     }
     const hrToken = hrLoginData.data.accessToken;
     console.log("HR user login succeeded.");
 
 
     // ========================================================
-    // EMPLOYEE PROVISIONING & SIGNUP FLOW
+    // EMPLOYEE PROVISIONING & IMMEDIATE SIGNUP FLOW
     // ========================================================
 
-    // --- TEST 5: HR User Creates Employee Record ---
-    console.log("\n--- TEST 5: HR User Creates Employee Record ---");
+    // --- TEST 3: HR User Creates Employee Record ---
+    console.log("\n--- TEST 3: HR User Creates Employee Record ---");
     const createEmpRes = await fetch(`${BASE_URL}/employees`, {
       method: "POST",
       headers: {
@@ -153,8 +128,8 @@ const runTests = async () => {
     const empDbId = createEmpData.data.employee.id;
     console.log("Employee provisioned with ID:", empEmployeeId);
 
-    // --- TEST 6: Employee Signs Up (Registers Account) ---
-    console.log("\n--- TEST 6: Employee Signs Up (Registers Account) ---");
+    // --- TEST 4: Employee Signs Up (Registers Account) ---
+    console.log("\n--- TEST 4: Employee Signs Up (Registers Account) ---");
     const empSignupRes = await fetch(`${BASE_URL}/auth/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -170,33 +145,9 @@ const runTests = async () => {
     if (empSignupRes.status !== 200 || !empSignupData.success) {
       throw new Error("Employee account activation/registration failed");
     }
-    const empVerificationToken = empSignupData.data.verificationToken;
 
-    // --- TEST 7: Employee Login Fails Before Verification ---
-    console.log("\n--- TEST 7: Employee Login Fails Before Verification ---");
-    const empLoginFailRes = await fetch(`${BASE_URL}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        login: "john.doe@example.com",
-        password: "EmpPassword123!"
-      })
-    });
-    console.log("Status:", empLoginFailRes.status);
-    if (empLoginFailRes.status !== 403) {
-      throw new Error("Employee login should have returned 403 Forbidden");
-    }
-
-    // --- TEST 8: Verify Employee Email ---
-    console.log("\n--- TEST 8: Verify Employee Email ---");
-    const empVerifyRes = await fetch(`${BASE_URL}/auth/verify-email?token=${empVerificationToken}`);
-    console.log("Status:", empVerifyRes.status);
-    if (empVerifyRes.status !== 200) {
-      throw new Error("Employee email verification failed");
-    }
-
-    // --- TEST 9: Employee Login Succeeds After Verification ---
-    console.log("\n--- TEST 9: Employee Login Succeeds After Verification ---");
+    // --- TEST 5: Employee Login Succeeds Immediately After Registration ---
+    console.log("\n--- TEST 5: Employee Login Succeeds Immediately After Registration ---");
     const empLoginRes = await fetch(`${BASE_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -208,7 +159,7 @@ const runTests = async () => {
     const empLoginData = await empLoginRes.json();
     console.log("Status:", empLoginRes.status);
     if (empLoginRes.status !== 200 || !empLoginData.success) {
-      throw new Error("Employee login failed after email verification");
+      throw new Error("Employee login failed immediately after registration");
     }
     const empToken = empLoginData.data.accessToken;
 
@@ -219,6 +170,8 @@ const runTests = async () => {
 
     // --- TEST 10: Get Dashboard Without JWT (Should Fail: 401) ---
     console.log("\n--- TEST 10: Get Dashboard Without JWT (Should Fail: 401) ---");
+    // --- TEST 6: Get Dashboard Without JWT (Should Fail: 401) ---
+    console.log("\n--- TEST 6: Get Dashboard Without JWT (Should Fail: 401) ---");
     const dashNoTokenRes = await fetch(`${BASE_URL}/dashboard/employee`);
     console.log("Status:", dashNoTokenRes.status);
     if (dashNoTokenRes.status !== 401) {
@@ -227,6 +180,8 @@ const runTests = async () => {
 
     // --- TEST 11: Employee Tries to Get Admin Dashboard (Should Fail: 403) ---
     console.log("\n--- TEST 11: Employee Tries to Get Admin Dashboard (Should Fail: 403) ---");
+    // --- TEST 7: Employee Tries to Get Admin Dashboard (Should Fail: 403) ---
+    console.log("\n--- TEST 7: Employee Tries to Get Admin Dashboard (Should Fail: 403) ---");
     const adminDashEmpTokenRes = await fetch(`${BASE_URL}/dashboard/admin`, {
       headers: { Authorization: `Bearer ${empToken}` }
     });
@@ -237,6 +192,8 @@ const runTests = async () => {
 
     // --- TEST 12: Employee Dashboard Empty State ---
     console.log("\n--- TEST 12: Employee Dashboard Empty State ---");
+    // --- TEST 8: Employee Dashboard Empty State ---
+    console.log("\n--- TEST 8: Employee Dashboard Empty State ---");
     const empDashEmptyRes = await fetch(`${BASE_URL}/dashboard/employee`, {
       headers: { Authorization: `Bearer ${empToken}` }
     });
@@ -250,6 +207,8 @@ const runTests = async () => {
 
     // --- TEST 13: Seed Attendance and Leave Records Directly in DB ---
     console.log("\n--- TEST 13: Seed Attendance and Leave Records Directly in DB ---");
+    // --- TEST 9: Seed Attendance and Leave Records Directly in DB ---
+    console.log("\n--- TEST 9: Seed Attendance and Leave Records Directly in DB ---");
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -355,6 +314,66 @@ const runTests = async () => {
     console.log("Fetched Employee Details:", JSON.stringify(getEmpDetailsData.data, null, 2));
     if (getEmpDetailsRes.status !== 200 || getEmpDetailsData.data.employeeId !== empEmployeeId) {
       throw new Error("HR switching/fetching employee details failed");
+    });
+    console.log("Successfully seeded 2 attendance records and 2 leave requests.");
+
+    // --- TEST 10: Employee Dashboard Populated State ---
+    console.log("\n--- TEST 10: Employee Dashboard Populated State ---");
+    const empDashPopRes = await fetch(`${BASE_URL}/dashboard/employee`, {
+      headers: { Authorization: `Bearer ${empToken}` }
+    });
+    const empDashPopData = await empDashPopRes.json();
+    console.log("Status:", empDashPopRes.status);
+    if (empDashPopData.data.attendance.status !== "CHECKED_IN") {
+      throw new Error("Attendance status should be CHECKED_IN");
+    }
+    if (empDashPopData.data.leave.pending !== 1 || empDashPopData.data.leave.approved !== 1) {
+      throw new Error("Leave summary count mismatch");
+    }
+
+    // --- TEST 11: Admin/HR Dashboard Aggregated Metrics ---
+    console.log("\n--- TEST 11: Admin/HR Dashboard Aggregated Metrics ---");
+    const adminDashRes = await fetch(`${BASE_URL}/dashboard/admin`, {
+      headers: { Authorization: `Bearer ${hrToken}` }
+    });
+    const adminDashData = await adminDashRes.json();
+    console.log("Status:", adminDashRes.status);
+    console.log("Summary Metrics:", JSON.stringify(adminDashData.data.summary, null, 2));
+
+    if (adminDashData.data.summary.totalEmployees !== 1) {
+      throw new Error("Total employees count mismatch");
+    }
+    if (adminDashData.data.summary.presentToday !== 1) {
+      throw new Error("Present today count mismatch");
+    }
+
+    // --- TEST 12: Admin/HR Switch Employee (Employee Details Endpoint) ---
+    console.log("\n--- TEST 12: Admin/HR Switch Employee (Employee Details Endpoint) ---");
+    const getEmpDetailsRes = await fetch(`${BASE_URL}/employees/${empDbId}`, {
+      headers: { Authorization: `Bearer ${hrToken}` }
+    });
+    const getEmpDetailsData = await getEmpDetailsRes.json();
+    console.log("Status:", getEmpDetailsRes.status);
+    if (getEmpDetailsRes.status !== 200 || getEmpDetailsData.data.employeeId !== empEmployeeId) {
+      throw new Error("HR switching/fetching employee details failed");
+    }
+
+    // --- TEST 13: Password Security Rule Validation (Signup Weak Password) ---
+    console.log("\n--- TEST 13: Password Security Rule Validation (Signup Weak Password) ---");
+    const weakPwRes = await fetch(`${BASE_URL}/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        employeeId: "DFADMI20260001",
+        email: "badpw@example.com",
+        password: "weak",
+        role: "EMPLOYEE"
+      })
+    });
+    const weakPwData = await weakPwRes.json();
+    console.log("Status:", weakPwRes.status);
+    if (weakPwRes.status !== 400 || !weakPwData.message.includes("uppercase")) {
+      throw new Error("Signup with weak password should return 400 with strength error message");
     }
 
     console.log("\n==============================");
