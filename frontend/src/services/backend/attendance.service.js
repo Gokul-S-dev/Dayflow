@@ -1,84 +1,54 @@
 import { apiClient } from '@/services/api/apiClient'
 
-let attendanceState = {
-  isCheckedIn: true,
-  checkInTime: '09:02 AM',
-  checkOutTime: null,
-  workDuration: '4h 15m',
-  status: 'PRESENT',
-}
-
-const MOCK_ATTENDANCE_LOGS = [
-  { id: 'att_01', date: '2026-02-20', employeeName: 'Eleanor Morgan', department: 'Engineering', checkIn: '09:02 AM', checkOut: '06:05 PM', hours: '8.5', status: 'PRESENT' },
-  { id: 'att_02', date: '2026-02-20', employeeName: 'Marcus Chen', department: 'Human Resources', checkIn: '08:55 AM', checkOut: '05:30 PM', hours: '8.0', status: 'PRESENT' },
-  { id: 'att_03', date: '2026-02-20', employeeName: 'Devon Kovac', department: 'Engineering', checkIn: '10:15 AM', checkOut: '06:30 PM', hours: '7.25', status: 'HALF_DAY' },
-  { id: 'att_04', date: '2026-02-20', employeeName: 'Amina Larsson', department: 'Operations', checkIn: '—', checkOut: '—', hours: '0.0', status: 'LEAVE' },
-  { id: 'att_05', date: '2026-02-20', employeeName: 'Priya Sharma', department: 'Finance', checkIn: '09:00 AM', checkOut: '05:45 PM', hours: '8.25', status: 'PRESENT' },
-]
-
 export const attendanceService = {
   /**
-   * Get current user attendance state
+   * Get real current attendance state for logged in user
    */
   async getTodayStatus() {
     try {
       const response = await apiClient.get('/attendance/today')
       return response?.data || response
-    } catch {
-      return attendanceState
+    } catch (error) {
+      throw error
     }
   },
 
   /**
-   * Perform Check In
+   * Check in
    */
   async checkIn() {
     try {
       const response = await apiClient.post('/attendance/check-in')
       return response?.data || response
-    } catch {
-      const now = new Date()
-      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      attendanceState = {
-        isCheckedIn: true,
-        checkInTime: timeStr,
-        checkOutTime: null,
-        workDuration: '0h 01m',
-        status: 'PRESENT',
-      }
-      return { success: true, message: `Checked in successfully at ${timeStr}`, data: attendanceState }
+    } catch (error) {
+      throw error
     }
   },
 
   /**
-   * Perform Check Out
+   * Check out
    */
   async checkOut() {
     try {
       const response = await apiClient.post('/attendance/check-out')
       return response?.data || response
-    } catch {
-      const now = new Date()
-      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      attendanceState = {
-        ...attendanceState,
-        isCheckedIn: false,
-        checkOutTime: timeStr,
-      }
-      return { success: true, message: `Checked out successfully at ${timeStr}`, data: attendanceState }
+    } catch (error) {
+      throw error
     }
   },
 
   /**
-   * Get attendance logs for employee or admin
+   * Get attendance logs
    */
   async getAttendanceLogs(filters = {}) {
     try {
       const query = new URLSearchParams(filters).toString()
       const response = await apiClient.get(`/attendance/logs?${query}`)
-      return response?.data || response
-    } catch {
-      return MOCK_ATTENDANCE_LOGS
+      if (Array.isArray(response)) return response
+      if (Array.isArray(response?.data)) return response.data
+      return []
+    } catch (error) {
+      throw error
     }
   },
 }
