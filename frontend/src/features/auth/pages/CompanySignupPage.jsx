@@ -71,8 +71,8 @@ export function CompanySignupPage() {
       }
 
       await authService.signupCompany(formData)
-      toast.success('Company registered successfully! Please check your email to verify.')
-      navigate(ROUTES.PUBLIC.VERIFY_EMAIL)
+      toast.success('Company registered successfully! You can now sign in.')
+      navigate(ROUTES.PUBLIC.LOGIN)
     } catch (error) {
       toast.error(error.message || 'Company registration failed.')
     } finally {

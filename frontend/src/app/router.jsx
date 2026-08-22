@@ -11,7 +11,6 @@ import { LandingPage } from '@/features/public/pages/LandingPage'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { SignupPage } from '@/features/auth/pages/SignupPage'
 import { CompanySignupPage } from '@/features/auth/pages/CompanySignupPage'
-import { VerifyEmailPage } from '@/features/auth/pages/VerifyEmailPage'
 
 // Employee Feature Pages
 import { EmployeeDashboardPage } from '@/features/employee/pages/EmployeeDashboardPage'
@@ -49,10 +48,6 @@ export const router = createBrowserRouter([
   {
     path: '/company-signup',
     element: <CompanySignupPage />,
-  },
-  {
-    path: ROUTES.PUBLIC.VERIFY_EMAIL,
-    element: <VerifyEmailPage />,
   },
   {
     path: ROUTES.DEV.DESIGN_SYSTEM,

@@ -57,8 +57,8 @@ export function SignupPage() {
         password: data.password,
         role: data.role,
       })
-      toast.success('Account activated successfully! Please verify your email.')
-      navigate(ROUTES.PUBLIC.VERIFY_EMAIL)
+      toast.success('Account activated successfully! You can now sign in.')
+      navigate(ROUTES.PUBLIC.LOGIN)
     } catch (error) {
       toast.error(error.message || 'Account activation failed.')
     } finally {
