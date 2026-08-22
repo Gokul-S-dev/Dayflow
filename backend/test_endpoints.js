@@ -73,7 +73,6 @@ const runTests = async () => {
     });
     const signupData = await signupRes.json();
     console.log("Status:", signupRes.status);
-    console.log("Response Body:", JSON.stringify(signupData, null, 2));
     if (signupRes.status !== 201 || !signupData.success) {
       throw new Error("Company + HR Signup failed");
     }
@@ -169,6 +168,8 @@ const runTests = async () => {
     // PHASE 4: DASHBOARD ENDPOINTS & SECURITY CHECKS
     // ========================================================
 
+    // --- TEST 10: Get Dashboard Without JWT (Should Fail: 401) ---
+    console.log("\n--- TEST 10: Get Dashboard Without JWT (Should Fail: 401) ---");
     // --- TEST 6: Get Dashboard Without JWT (Should Fail: 401) ---
     console.log("\n--- TEST 6: Get Dashboard Without JWT (Should Fail: 401) ---");
     const dashNoTokenRes = await fetch(`${BASE_URL}/dashboard/employee`);
@@ -177,6 +178,8 @@ const runTests = async () => {
       throw new Error("Employee dashboard without token should fail with 401");
     }
 
+    // --- TEST 11: Employee Tries to Get Admin Dashboard (Should Fail: 403) ---
+    console.log("\n--- TEST 11: Employee Tries to Get Admin Dashboard (Should Fail: 403) ---");
     // --- TEST 7: Employee Tries to Get Admin Dashboard (Should Fail: 403) ---
     console.log("\n--- TEST 7: Employee Tries to Get Admin Dashboard (Should Fail: 403) ---");
     const adminDashEmpTokenRes = await fetch(`${BASE_URL}/dashboard/admin`, {
@@ -187,6 +190,8 @@ const runTests = async () => {
       throw new Error("Employee accessing admin dashboard should fail with 403");
     }
 
+    // --- TEST 12: Employee Dashboard Empty State ---
+    console.log("\n--- TEST 12: Employee Dashboard Empty State ---");
     // --- TEST 8: Employee Dashboard Empty State ---
     console.log("\n--- TEST 8: Employee Dashboard Empty State ---");
     const empDashEmptyRes = await fetch(`${BASE_URL}/dashboard/employee`, {
@@ -194,10 +199,14 @@ const runTests = async () => {
     });
     const empDashEmptyData = await empDashEmptyRes.json();
     console.log("Status:", empDashEmptyRes.status);
+    console.log("Empty State Attendance:", JSON.stringify(empDashEmptyData.data.attendance));
+    console.log("Empty State Leave:", JSON.stringify(empDashEmptyData.data.leave));
     if (empDashEmptyData.data.attendance.status !== "NOT_CHECKED_IN") {
       throw new Error("Should show NOT_CHECKED_IN for empty state");
     }
 
+    // --- TEST 13: Seed Attendance and Leave Records Directly in DB ---
+    console.log("\n--- TEST 13: Seed Attendance and Leave Records Directly in DB ---");
     // --- TEST 9: Seed Attendance and Leave Records Directly in DB ---
     console.log("\n--- TEST 9: Seed Attendance and Leave Records Directly in DB ---");
     const today = new Date();
@@ -250,6 +259,61 @@ const runTests = async () => {
       endDate: lastWeek,
       reason: "Family gathering",
       status: "APPROVED"
+    });
+    console.log("Successfully seeded 2 attendance records and 2 leave requests.");
+
+    // --- TEST 14: Employee Dashboard Populated State ---
+    console.log("\n--- TEST 14: Employee Dashboard Populated State ---");
+    const empDashPopRes = await fetch(`${BASE_URL}/dashboard/employee`, {
+      headers: { Authorization: `Bearer ${empToken}` }
+    });
+    const empDashPopData = await empDashPopRes.json();
+    console.log("Status:", empDashPopRes.status);
+    console.log("Attendance Status:", empDashPopData.data.attendance.status);
+    console.log("Leave Summary Counts:", JSON.stringify(empDashPopData.data.leave));
+    console.log("Recent Activity Items:", empDashPopData.data.recentActivity.length);
+    if (empDashPopData.data.attendance.status !== "CHECKED_IN") {
+      throw new Error("Attendance status should be CHECKED_IN");
+    }
+    if (empDashPopData.data.leave.pending !== 1 || empDashPopData.data.leave.approved !== 1) {
+      throw new Error("Leave summary count mismatch");
+    }
+    if (empDashPopData.data.recentActivity.length !== 5) {
+      throw new Error("Should show exactly 5 activities");
+    }
+
+    // --- TEST 15: Admin/HR Dashboard Aggregated Metrics ---
+    console.log("\n--- TEST 15: Admin/HR Dashboard Aggregated Metrics ---");
+    const adminDashRes = await fetch(`${BASE_URL}/dashboard/admin`, {
+      headers: { Authorization: `Bearer ${hrToken}` }
+    });
+    const adminDashData = await adminDashRes.json();
+    console.log("Status:", adminDashRes.status);
+    console.log("Summary Metrics:", JSON.stringify(adminDashData.data.summary, null, 2));
+    console.log("Total Employees Listed:", adminDashData.data.employees.length);
+    console.log("Pending Leaves Count:", adminDashData.data.pendingLeaves.length);
+    console.log("Recent Check-ins Count:", adminDashData.data.recentAttendance.length);
+
+    if (adminDashData.data.summary.totalEmployees !== 1) {
+      throw new Error("Total employees count mismatch");
+    }
+    if (adminDashData.data.summary.presentToday !== 1) {
+      throw new Error("Present today count mismatch");
+    }
+    if (adminDashData.data.summary.pendingLeaveRequests !== 1) {
+      throw new Error("Pending leaves count mismatch");
+    }
+
+    // --- TEST 16: Admin/HR Switch Employee (Employee Details Endpoint) ---
+    console.log("\n--- TEST 16: Admin/HR Switch Employee (Employee Details Endpoint) ---");
+    const getEmpDetailsRes = await fetch(`${BASE_URL}/employees/${empDbId}`, {
+      headers: { Authorization: `Bearer ${hrToken}` }
+    });
+    const getEmpDetailsData = await getEmpDetailsRes.json();
+    console.log("Status:", getEmpDetailsRes.status);
+    console.log("Fetched Employee Details:", JSON.stringify(getEmpDetailsData.data, null, 2));
+    if (getEmpDetailsRes.status !== 200 || getEmpDetailsData.data.employeeId !== empEmployeeId) {
+      throw new Error("HR switching/fetching employee details failed");
     });
     console.log("Successfully seeded 2 attendance records and 2 leave requests.");
 
