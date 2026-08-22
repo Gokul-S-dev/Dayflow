@@ -1,0 +1,205 @@
+# Dayflow HRMS API Endpoints Testing (.http / REST Client file)
+# Use this file with the "REST Client" extension in VS Code.
+
+@baseUrl = http://localhost:5000/api/v1
+
+### ----------------------------------------------------
+### 1. PHASE 3: COMPANY SIGNUP & EMAIL VERIFICATION
+### ----------------------------------------------------
+
+# @name companySignup
+# Register a New Company & Initial HR Account
+POST {{baseUrl}}/auth/signup-company
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="companyName"
+
+Odoo India Signup Test
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="firstName"
+
+Hr
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="lastName"
+
+User
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="email"
+
+hr@signup.com
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="phone"
+
+9998887776
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="password"
+
+HRSecurePass123!
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="confirmPassword"
+
+HRSecurePass123!
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="role"
+
+HR
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="logo"; filename="logo.png"
+Content-Type: image/png
+
+< ./media/companies/.gitkeep
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+# Save verification token and generated employeeId from company signup response
+@hrVerificationToken = {{companySignup.response.body.data.verificationToken}}
+@hrEmployeeId = {{companySignup.response.body.data.user.employeeId}}
+
+###
+
+# Hitting verify email endpoint with verification token
+GET {{baseUrl}}/auth/verify-email?token={{hrVerificationToken}}
+
+###
+
+# @name hrLogin
+# HR Logs in after successful email verification
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "login": "{{hrEmployeeId}}",
+  "password": "HRSecurePass123!"
+}
+
+###
+
+# Save the HR access token
+@hrToken = {{hrLogin.response.body.data.accessToken}}
+
+###
+
+### ----------------------------------------------------
+### 2. EMPLOYEE PROVISIONING & SIGNUP FLOW
+### ----------------------------------------------------
+
+# @name provisionEmployee
+# HR User Creates/Provisions an Employee Account
+POST {{baseUrl}}/employees
+Authorization: Bearer {{hrToken}}
+Content-Type: application/json
+
+{
+  "companyName": "Odoo India Signup Test",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "phone": "9876543210",
+  "joiningDate": "2026-08-22",
+  "role": "EMPLOYEE"
+}
+
+###
+
+# Save variables from employee creation response
+@empEmployeeId = {{provisionEmployee.response.body.data.employee.employeeId}}
+@empDbId = {{provisionEmployee.response.body.data.employee.id}}
+
+###
+
+# @name employeeSignup
+# Employee registers/activates account using provisioned employeeId & email
+POST {{baseUrl}}/auth/signup
+Content-Type: application/json
+
+{
+  "employeeId": "{{empEmployeeId}}",
+  "email": "john.doe@example.com",
+  "password": "EmpPassword123!",
+  "role": "EMPLOYEE"
+}
+
+###
+
+# Save employee verification token from response
+@empVerificationToken = {{employeeSignup.response.body.data.verificationToken}}
+
+###
+
+# Verify Employee Email
+GET {{baseUrl}}/auth/verify-email?token={{empVerificationToken}}
+
+###
+
+# @name employeeLogin
+# Employee logs in using new password (after email verification)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "login": "{{empEmployeeId}}",
+  "password": "EmpPassword123!"
+}
+
+###
+
+# Save employee tokens
+@employeeToken = {{employeeLogin.response.body.data.accessToken}}
+@employeeRefreshToken = {{employeeLogin.response.body.data.refreshToken}}
+
+###
+
+### ----------------------------------------------------
+### 3. ROLE-BASED ACCESS CONTROL (RBAC) & PROFILE UPDATE
+### ----------------------------------------------------
+
+# Employee Tries to List All Employees (Should Fail: 403 Forbidden)
+GET {{baseUrl}}/employees
+Authorization: Bearer {{employeeToken}}
+
+###
+
+# Employee Retrieves Own Profile (Should Succeed: 200 OK)
+GET {{baseUrl}}/employees/{{empDbId}}
+Authorization: Bearer {{employeeToken}}
+
+###
+
+# Employee Updates Allowed Profile Fields (Phone and Address)
+PATCH {{baseUrl}}/employees/{{empDbId}}
+Authorization: Bearer {{employeeToken}}
+Content-Type: application/json
+
+{
+  "phone": "9999999999",
+  "address": "456 Silicon Valley, Bangalore"
+}
+
+###
+
+# Employee Tries to Update Protected Fields (Role) (Should Fail: 403 Forbidden)
+PATCH {{baseUrl}}/employees/{{empDbId}}
+Authorization: Bearer {{employeeToken}}
+Content-Type: application/json
+
+{
+  "role": "ADMIN"
+}
+
+###
+
+# Refresh Access Token
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{employeeRefreshToken}}"
+}
+
+###
+
+# Logout User
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{employeeToken}}
