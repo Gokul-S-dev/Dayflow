@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import * as userRepository from "../repositories/user.repository.js";
 import * as companyRepository from "../repositories/company.repository.js";
+import { User } from "../models/user.model.js";
 import { AppError } from "../middleware/error.middleware.js";
 import {
   generateCompanyPrefix,
@@ -89,13 +90,34 @@ export const createEmployee = async (employeeData) => {
 };
 
 /**
- * Retrieves all employees.
+ * Retrieves all employees with filters and pagination.
  */
-export const getEmployees = async () => {
-  const users = await userRepository.findAll();
+export const getEmployees = async (companyId, filter = {}) => {
+  const query = { companyId, role: "EMPLOYEE" };
+
+  if (filter.search) {
+    const searchRegex = new RegExp(filter.search, "i");
+    query.$or = [
+      { firstName: searchRegex },
+      { lastName: searchRegex },
+      { email: searchRegex },
+      { employeeId: searchRegex }
+    ];
+  }
+
+  const page = parseInt(filter.page) || 1;
+  const limit = parseInt(filter.limit) || 20;
+  const skip = (page - 1) * limit;
+
+  const users = await User.find(query)
+    .populate("companyId")
+    .skip(skip)
+    .limit(limit);
+
   return users.map((u) => ({
     id: u._id,
     employeeId: u.employeeId,
+    companyId: u.companyId ? u.companyId._id : null,
     companyName: u.companyId ? u.companyId.name : null,
     firstName: u.firstName,
     lastName: u.lastName,
@@ -123,6 +145,7 @@ export const getEmployeeById = async (id) => {
   return {
     id: user._id,
     employeeId: user.employeeId,
+    companyId: user.companyId ? user.companyId._id : null,
     companyName: user.companyId ? user.companyId.name : null,
     firstName: user.firstName,
     lastName: user.lastName,
