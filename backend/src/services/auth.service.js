@@ -1,6 +1,5 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
 import fs from "fs";
 import { env } from "../config/env.js";
 import * as userRepository from "../repositories/user.repository.js";
@@ -42,11 +41,6 @@ export const login = async (loginCredential, password) => {
     throw new AppError("Your account has been deactivated. Please contact support.", 403);
   }
 
-  // Enforce email verification check
-  if (!user.emailVerified) {
-    throw new AppError("Please verify your email address before logging in.", 403);
-  }
-
   const isMatch = await bcrypt.compare(password, user.passwordHash);
   if (!isMatch) {
     throw new AppError("Invalid email/employee ID or password", 401);
@@ -78,8 +72,8 @@ export const signupEmployee = async (employeeId, email, password, role) => {
     throw new AppError("Employee record with these credentials does not exist in the system", 404);
   }
 
-  // Check if user is already active and verified
-  if (user.emailVerified && user.passwordHash && !user.isFirstLogin) {
+  // Check if user is already active
+  if (user.passwordHash && !user.isFirstLogin) {
     throw new AppError("Account already registered. Please login instead.", 400);
   }
 
@@ -91,16 +85,11 @@ export const signupEmployee = async (employeeId, email, password, role) => {
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash(password, salt);
 
-  // Generate verification token
-  const token = crypto.randomBytes(32).toString("hex");
-  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-  // Update user
+  // Update user and activate immediately
   const updatedUser = await userRepository.update(user._id, {
     passwordHash,
     isFirstLogin: false,
-    verificationToken: token,
-    verificationTokenExpires: expires
+    emailVerified: true
   });
 
   return {
@@ -109,8 +98,7 @@ export const signupEmployee = async (employeeId, email, password, role) => {
       employeeId: updatedUser.employeeId,
       email: updatedUser.email,
       role: updatedUser.role
-    },
-    verificationToken: token
+    }
   };
 };
 
@@ -140,11 +128,7 @@ export const signupCompany = async (companyData) => {
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash(password, salt);
 
-  // 4. Generate verification token
-  const token = crypto.randomBytes(32).toString("hex");
-  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-  // 5. Create user
+  // 4. Create user - activated immediately
   const newUser = await userRepository.create({
     employeeId,
     companyId: company._id,
@@ -157,9 +141,7 @@ export const signupCompany = async (companyData) => {
     joiningDate: new Date(),
     isActive: true,
     isFirstLogin: false, // since they registered themselves
-    emailVerified: false,
-    verificationToken: token,
-    verificationTokenExpires: expires
+    emailVerified: true
   });
 
   return {
@@ -171,32 +153,7 @@ export const signupCompany = async (companyData) => {
       lastName: newUser.lastName,
       email: newUser.email,
       role: newUser.role
-    },
-    verificationToken: token
-  };
-};
-
-/**
- * Verifies user email via token.
- */
-export const verifyEmail = async (token) => {
-  const user = await userRepository.findByVerificationToken(token);
-  if (!user) {
-    throw new AppError("Invalid or expired verification token", 400);
-  }
-
-  // Update verification status
-  const updatedUser = await userRepository.update(user._id, {
-    emailVerified: true,
-    verificationToken: null,
-    verificationTokenExpires: null
-  });
-
-  return {
-    id: updatedUser._id,
-    employeeId: updatedUser.employeeId,
-    email: updatedUser.email,
-    emailVerified: updatedUser.emailVerified
+    }
   };
 };
 

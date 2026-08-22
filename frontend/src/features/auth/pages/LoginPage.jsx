@@ -22,7 +22,7 @@ const loginSchema = z.object({
 export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { setAuth, setRole } = useAuthStore()
+  const { setAuth } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [apiError, setApiError] = useState(null)
@@ -47,34 +47,37 @@ export function LoginPage() {
     setApiError(null)
     try {
       const response = await authService.login(data)
-      if (response?.token || response?.user) {
+      const userData = response?.data?.user
+      const userToken = response?.data?.accessToken
+
+      if (userData && userToken) {
+        // Map user properties so that frontend names match
+        const mappedUser = {
+          id: userData.id,
+          name: `${userData.firstName} ${userData.lastName}`,
+          email: userData.email,
+          role: userData.role
+        }
         setAuth({
-          user: response.user || { name: 'Verified User', email: data.login, role: ROLES.ADMIN },
-          token: response.token || 'jwt-bearer-token',
+          user: mappedUser,
+          token: userToken,
         })
         toast.success('Signed in successfully!')
-        const targetPath = response?.user?.role === ROLES.EMPLOYEE ? ROUTES.EMPLOYEE.DASHBOARD : ROUTES.ADMIN.DASHBOARD
+        const targetPath = userData.role === ROLES.EMPLOYEE ? ROUTES.EMPLOYEE.DASHBOARD : ROUTES.ADMIN.DASHBOARD
         navigate(from || targetPath, { replace: true })
+      } else {
+        setApiError('Invalid response format from server.')
       }
     } catch (error) {
-      console.warn('Backend login fallback to demo mode:', error.message)
-      // If server is not running, provide informative error or allow demo sign in
+      console.warn('Backend login failure:', error.message)
       setApiError(error.message || 'Login failed. Please verify your credentials.')
-      toast.error('Could not authenticate with backend. You can use the Quick Demo Sign In below.')
+      toast.error(error.message || 'Could not authenticate with backend.')
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleDemoSignIn = (role) => {
-    setRole(role)
-    toast.success(`Signed in as ${role} (Demo Mode)`)
-    if (role === ROLES.EMPLOYEE) {
-      navigate(ROUTES.EMPLOYEE.DASHBOARD, { replace: true })
-    } else {
-      navigate(ROUTES.ADMIN.DASHBOARD, { replace: true })
-    }
-  }
+
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
@@ -151,27 +154,6 @@ export function LoginPage() {
             </form>
           </CardContent>
           <CardFooter className="flex flex-col gap-3 pt-4 border-t border-slate-100 bg-slate-50/50">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">
-              Quick Demo Access
-            </span>
-            <div className="flex w-full gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 text-xs bg-white"
-                onClick={() => handleDemoSignIn(ROLES.EMPLOYEE)}
-              >
-                Demo Employee
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 text-xs bg-white"
-                onClick={() => handleDemoSignIn(ROLES.ADMIN)}
-              >
-                Demo Admin/HR
-              </Button>
-            </div>
             <div className="flex items-center justify-between w-full text-xs text-slate-500 pt-1">
               <Link to={ROUTES.PUBLIC.SIGNUP} className="hover:text-slate-800">
                 Activate Account

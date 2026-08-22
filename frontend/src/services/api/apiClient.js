@@ -7,9 +7,10 @@ const BASE_URL = import.meta.env.VITE_API_URL || '/api/v1'
  */
 async function request(endpoint, { method = 'GET', data, headers = {}, ...customConfig } = {}) {
   const token = useAuthStore.getState().token
+  const isFormData = data instanceof FormData
 
   const defaultHeaders = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...headers,
   }
@@ -21,7 +22,7 @@ async function request(endpoint, { method = 'GET', data, headers = {}, ...custom
   }
 
   if (data) {
-    config.body = JSON.stringify(data)
+    config.body = isFormData ? data : JSON.stringify(data)
   }
 
   const url = `${BASE_URL.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`

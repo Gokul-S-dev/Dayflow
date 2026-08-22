@@ -29,11 +29,10 @@ const DEMO_USERS = {
 }
 
 export const useAuthStore = create((set, get) => ({
-  // Default to authenticated with ADMIN role for development preview
-  isAuthenticated: true,
-  token: 'mock-jwt-token-for-dev',
-  user: DEMO_USERS[ROLES.ADMIN],
-  role: ROLES.ADMIN,
+  isAuthenticated: false,
+  token: null,
+  user: null,
+  role: null,
 
   /**
    * Set user and token after successful login
