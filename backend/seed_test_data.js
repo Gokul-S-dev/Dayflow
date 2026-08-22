@@ -14,7 +14,7 @@ const seed = async () => {
     console.log("Connected.");
 
     // Clean old seed users, company, logs
-    await User.deleteMany({ email: { $in: ["hr@odoo.com", "employee@odoo.com", "eleanor@odoo.com", "marcus@odoo.com", "amina@odoo.com", "alexandra@odoo.com"] } });
+    await User.deleteMany({ email: { $in: ["admin@odoo.com", "hr@odoo.com", "employee@odoo.com", "eleanor@odoo.com", "marcus@odoo.com", "amina@odoo.com", "alexandra@odoo.com"] } });
     await Company.deleteMany({ name: "Odoo India" });
     await Counter.deleteMany({ _id: { $regex: "employee_id_" } });
     await Attendance.deleteMany({});
@@ -30,9 +30,30 @@ const seed = async () => {
 
     const passwordHash = await bcrypt.hash("Password123!", 10);
 
+    // Create Admin User
+    const admin = await User.create({
+      employeeId: "OIADMI20260001",
+      companyId: company._id,
+      firstName: "Admin",
+      lastName: "User",
+      email: "admin@odoo.com",
+      phone: "9876543209",
+      passwordHash,
+      role: "ADMIN",
+      joiningDate: new Date(),
+      isActive: true,
+      isFirstLogin: false,
+      loginId: "OIADMI20260001",
+      emailVerified: true,
+      accountStatus: "APPROVED",
+      department: "Management",
+      designation: "General Administrator"
+    });
+    console.log("Admin seeded:", admin.email);
+
     // Create HR User
     const hr = await User.create({
-      employeeId: "OIHRMA20260001",
+      employeeId: "OIHRMA20260002",
       companyId: company._id,
       firstName: "Hr",
       lastName: "Manager",
@@ -43,7 +64,7 @@ const seed = async () => {
       joiningDate: new Date(),
       isActive: true,
       isFirstLogin: false,
-      loginId: "OIHRMA20260001",
+      loginId: "OIHRMA20260002",
       emailVerified: true,
       accountStatus: "APPROVED",
       department: "Human Resources",

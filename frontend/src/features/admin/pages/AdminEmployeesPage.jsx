@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { employeesService } from '@/services/backend/employees.service'
 import { dashboardService } from '@/services/backend/dashboard.service'
+import { profileMetadataService } from '@/services/backend/profileMetadata'
 import { ROLES } from '@/constants/roles'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -82,6 +83,21 @@ export function AdminEmployeesPage() {
     setSubmitting(true)
     try {
       const res = await employeesService.createEmployee(formData)
+      
+      // Seed initial metadata with the salary/wage from the form
+      const provisionedEmp = res.data?.employee || res.employee
+      if (provisionedEmp) {
+        const empId = provisionedEmp.employeeId || provisionedEmp.id
+        profileMetadataService.saveMetadata(empId, {
+          monthlyWage: Number(formData.salary) || 75000,
+          skills: [],
+          certifications: [],
+          aboutMe: '',
+          loveAboutJob: '',
+          hobbies: ''
+        })
+      }
+
       toast.success(res.message || 'Employee provisioned successfully!')
       setDialogOpen(false)
       reset()

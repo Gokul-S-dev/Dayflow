@@ -63,7 +63,7 @@ export function LoginPage() {
           token: userToken,
         })
         toast.success('Signed in successfully!')
-        const targetPath = userData.role === ROLES.EMPLOYEE ? ROUTES.EMPLOYEE.DASHBOARD : ROUTES.ADMIN.DASHBOARD
+        const targetPath = userData.role === ROLES.EMPLOYEE ? ROUTES.EMPLOYEE.DASHBOARD : ROUTES.ADMIN.EMPLOYEES
         navigate(from || targetPath, { replace: true })
       } else {
         setApiError('Invalid response format from server.')

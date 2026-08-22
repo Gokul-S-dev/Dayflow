@@ -11,7 +11,7 @@ export function RoleRoute({ allowedRoles = [], children }) {
 
   if (!hasAccess) {
     // Redirect based on current role
-    const fallbackPath = role === ROLES.EMPLOYEE ? ROUTES.EMPLOYEE.DASHBOARD : ROUTES.ADMIN.DASHBOARD
+    const fallbackPath = role === ROLES.EMPLOYEE ? ROUTES.EMPLOYEE.DASHBOARD : ROUTES.ADMIN.EMPLOYEES
     return <Navigate to={fallbackPath} replace />
   }
 

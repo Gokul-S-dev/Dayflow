@@ -34,7 +34,7 @@ export const EMPLOYEE_NAV_ITEMS = [
     icon: Clock,
   },
   {
-    label: 'Leave',
+    label: 'Time Off',
     path: ROUTES.EMPLOYEE.LEAVE,
     icon: CalendarDays,
   },
@@ -50,13 +50,6 @@ export const EMPLOYEE_NAV_ITEMS = [
  */
 export const ADMIN_NAV_ITEMS = [
   {
-    label: 'Dashboard',
-    path: ROUTES.ADMIN.DASHBOARD,
-    icon: LayoutDashboard,
-    exact: true,
-    roles: [ROLES.ADMIN, ROLES.HR],
-  },
-  {
     label: 'Employees',
     path: ROUTES.ADMIN.EMPLOYEES,
     icon: Users,
@@ -69,9 +62,15 @@ export const ADMIN_NAV_ITEMS = [
     roles: [ROLES.ADMIN, ROLES.HR],
   },
   {
-    label: 'Leave Approvals',
+    label: 'Time Off',
     path: ROUTES.ADMIN.LEAVE,
     icon: CalendarCheck,
+    roles: [ROLES.ADMIN, ROLES.HR],
+  },
+  {
+    label: 'Dashboard',
+    path: ROUTES.ADMIN.DASHBOARD,
+    icon: LayoutDashboard,
     roles: [ROLES.ADMIN, ROLES.HR],
   },
   {

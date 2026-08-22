@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { PageContainer } from '@/components/layout/PageContainer'
+import { useAuthStore } from '@/store/authStore'
 import { employeesService } from '@/services/backend/employees.service'
 import { profileMetadataService } from '@/services/backend/profileMetadata'
 import { calculateSalaryComponents, formatCurrency } from '@/features/payroll/utils/salaryCalculator'
@@ -16,6 +17,8 @@ import { toast } from 'sonner'
 export function AdminEmployeeDetailsPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { user: currentUser } = useAuthStore()
+  const isAdmin = currentUser?.role === 'ADMIN'
   const [emp, setEmp] = useState(null)
   const [metadata, setMetadata] = useState(null)
 
@@ -54,7 +57,7 @@ export function AdminEmployeeDetailsPage() {
 
   return (
     <PageContainer
-      title={emp.fullName || `${emp.firstName} ${emp.lastName}`}
+      title="Employee Details"
       description={`Personnel profile record — View Only`}
       badge={<Badge variant="purple">{emp.role}</Badge>}
       breadcrumbs={[
@@ -97,10 +100,10 @@ export function AdminEmployeeDetailsPage() {
       </Card>
 
       <Tabs defaultValue="resume" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 max-w-lg">
+        <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'} max-w-lg`}>
           <TabsTrigger value="resume">Resume</TabsTrigger>
           <TabsTrigger value="private">Private Info</TabsTrigger>
-          <TabsTrigger value="salary">Salary Info</TabsTrigger>
+          {isAdmin && <TabsTrigger value="salary">Salary Info</TabsTrigger>}
           <TabsTrigger value="security">Security</TabsTrigger>
         </TabsList>
 
@@ -277,74 +280,76 @@ export function AdminEmployeeDetailsPage() {
         </TabsContent>
 
         {/* Tab 3: Salary Info (Read-Only) */}
-        <TabsContent value="salary" className="pt-4">
-          <Card className="bg-white border-slate-200 shadow-xs">
-            <CardHeader>
-              <CardTitle className="text-base text-slate-900 font-bold">Salary Structure</CardTitle>
-              <CardDescription>Wage breakdown calculation mapped using the INR compensation model.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-5 text-xs text-slate-800">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <span className="text-slate-400 font-semibold uppercase tracking-wider block">Monthly Gross Wage</span>
-                  <span className="text-xl font-bold text-slate-900">{formatCurrency(salaryDetails.monthlyWage)}</span>
+        {isAdmin && (
+          <TabsContent value="salary" className="pt-4">
+            <Card className="bg-white border-slate-200 shadow-xs">
+              <CardHeader>
+                <CardTitle className="text-base text-slate-900 font-bold">Salary Structure</CardTitle>
+                <CardDescription>Wage breakdown calculation mapped using the INR compensation model.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5 text-xs text-slate-800">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <span className="text-slate-400 font-semibold uppercase tracking-wider block">Monthly Gross Wage</span>
+                    <span className="text-xl font-bold text-slate-900">{formatCurrency(salaryDetails.monthlyWage)}</span>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <span className="text-slate-400 font-semibold uppercase tracking-wider block">Yearly CTC</span>
+                    <span className="text-xl font-bold text-slate-900">{formatCurrency(salaryDetails.yearlyWage)}</span>
+                  </div>
                 </div>
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <span className="text-slate-400 font-semibold uppercase tracking-wider block">Yearly CTC</span>
-                  <span className="text-xl font-bold text-slate-900">{formatCurrency(salaryDetails.yearlyWage)}</span>
-                </div>
-              </div>
 
-              <div className="pt-3 space-y-2">
-                <span className="text-xs font-bold text-slate-700 block border-b pb-1">Wage Components</span>
-                <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-slate-500">Basic Salary (50% of Wage):</span>
-                  <span className="font-semibold">{formatCurrency(salaryDetails.components.basic)}</span>
+                <div className="pt-3 space-y-2">
+                  <span className="text-xs font-bold text-slate-700 block border-b pb-1">Wage Components</span>
+                  <div className="flex justify-between py-1 border-b border-slate-50">
+                    <span className="text-slate-500">Basic Salary (50% of Wage):</span>
+                    <span className="font-semibold">{formatCurrency(salaryDetails.components.basic)}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-50">
+                    <span className="text-slate-500">House Rent Allowance (50% of Basic):</span>
+                    <span className="font-semibold">{formatCurrency(salaryDetails.components.hra)}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-50">
+                    <span className="text-slate-500">Standard Allowance (10% of Wage):</span>
+                    <span className="font-semibold">{formatCurrency(salaryDetails.components.standardAllowance)}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-50">
+                    <span className="text-slate-500">Performance Bonus (10% of Wage):</span>
+                    <span className="font-semibold">{formatCurrency(salaryDetails.components.performanceBonus)}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-50">
+                    <span className="text-slate-500">Leave Travel Allowance (5% of Wage):</span>
+                    <span className="font-semibold">{formatCurrency(salaryDetails.components.lta)}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-55">
+                    <span className="text-slate-500">Fixed Allowance:</span>
+                    <span className="font-semibold">{formatCurrency(salaryDetails.components.fixedAllowance)}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-slate-500">House Rent Allowance (50% of Basic):</span>
-                  <span className="font-semibold">{formatCurrency(salaryDetails.components.hra)}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-slate-500">Standard Allowance (10% of Wage):</span>
-                  <span className="font-semibold">{formatCurrency(salaryDetails.components.standardAllowance)}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-slate-500">Performance Bonus (10% of Wage):</span>
-                  <span className="font-semibold">{formatCurrency(salaryDetails.components.performanceBonus)}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-slate-500">Leave Travel Allowance (5% of Wage):</span>
-                  <span className="font-semibold">{formatCurrency(salaryDetails.components.lta)}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-55">
-                  <span className="text-slate-500">Fixed Allowance:</span>
-                  <span className="font-semibold">{formatCurrency(salaryDetails.components.fixedAllowance)}</span>
-                </div>
-              </div>
 
-              <div className="pt-3 space-y-2">
-                <span className="text-xs font-bold text-slate-700 block border-b pb-1">Contributions & Deductions</span>
-                <div className="flex justify-between py-1">
-                  <span className="text-slate-500">Employee PF (12% of Basic):</span>
-                  <span className="font-semibold text-red-600">-{formatCurrency(salaryDetails.pf.employeePF)}</span>
+                <div className="pt-3 space-y-2">
+                  <span className="text-xs font-bold text-slate-700 block border-b pb-1">Contributions & Deductions</span>
+                  <div className="flex justify-between py-1">
+                    <span className="text-slate-500">Employee PF (12% of Basic):</span>
+                    <span className="font-semibold text-red-600">-{formatCurrency(salaryDetails.pf.employeePF)}</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="text-slate-500">Employer PF (12% of Basic):</span>
+                    <span className="font-semibold text-slate-700">{formatCurrency(salaryDetails.pf.employerPF)}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b pb-1">
+                    <span className="text-slate-500">Professional Tax:</span>
+                    <span className="font-semibold text-red-600">-{formatCurrency(salaryDetails.professionalTax)}</span>
+                  </div>
+                  <div className="flex justify-between py-2 text-sm font-bold text-slate-900">
+                    <span>Estimated Net Take-Home Salary:</span>
+                    <span>{formatCurrency(salaryDetails.netSalary)} / month</span>
+                  </div>
                 </div>
-                <div className="flex justify-between py-1">
-                  <span className="text-slate-500">Employer PF (12% of Basic):</span>
-                  <span className="font-semibold text-slate-700">{formatCurrency(salaryDetails.pf.employerPF)}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b pb-1">
-                  <span className="text-slate-500">Professional Tax:</span>
-                  <span className="font-semibold text-red-600">-{formatCurrency(salaryDetails.professionalTax)}</span>
-                </div>
-                <div className="flex justify-between py-2 text-sm font-bold text-slate-900">
-                  <span>Estimated Net Take-Home Salary:</span>
-                  <span>{formatCurrency(salaryDetails.netSalary)} / month</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
         {/* Tab 4: Security (Read-Only) */}
         <TabsContent value="security" className="pt-4">

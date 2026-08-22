@@ -3,6 +3,14 @@ import { AppError } from "../middleware/error.middleware.js";
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const validateCreateEmployee = (req, res, next) => {
+  // Auto-fill companyName and joiningDate from req.user context if missing
+  if (!req.body.companyName && req.user?.companyId?.name) {
+    req.body.companyName = req.user.companyId.name;
+  }
+  if (!req.body.joiningDate) {
+    req.body.joiningDate = new Date().toISOString();
+  }
+
   const { companyName, firstName, lastName, email, phone, joiningDate, role } = req.body;
 
   if (!companyName || typeof companyName !== "string" || !companyName.trim()) {
