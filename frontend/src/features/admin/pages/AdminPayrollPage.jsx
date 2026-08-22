@@ -1,37 +1,91 @@
 import React, { useEffect, useState } from 'react'
 import { PageContainer } from '@/components/layout/PageContainer'
-import { payrollService } from '@/services/backend/payroll.service'
+import { odooEmployees } from '@/services/odoo/employees'
+import { profileMetadata } from '@/services/backend/profileMetadata'
+import { calculateSalaryComponents } from '@/features/payroll/utils/salaryCalculator'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
-import { CreditCard, Search, Edit2, CheckCircle2, DollarSign } from 'lucide-react'
+import { CreditCard, Search, Edit2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 export function AdminPayrollPage() {
-  const [payrolls, setPayrolls] = useState([])
+  const [employees, setEmployees] = useState([])
   const [search, setSearch] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+
+  const loadData = async () => {
+    setIsLoading(true)
+    try {
+      const data = await odooEmployees.getEmployees()
+      setEmployees(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
-    async function loadPayroll() {
-      try {
-        const data = await payrollService.getAdminPayroll()
-        setPayrolls(data)
-      } catch (err) {
-        console.error(err)
-      }
-    }
-    loadPayroll()
+    loadData()
   }, [])
 
-  const filtered = payrolls.filter((p) =>
-    p.employeeName.toLowerCase().includes(search.toLowerCase()) ||
+  // Calculate salary details for all loaded employees
+  const processedEmployees = employees.map(emp => {
+    const meta = profileMetadata.getMetadata(emp.employeeId)
+    const sal = calculateSalaryComponents(meta.monthlyWage)
+    
+    // Calculate total allowances
+    const allowances = (sal.components.hra || 0) + 
+                       (sal.components.standardAllowance || 0) + 
+                       (sal.components.performanceBonus || 0) + 
+                       (sal.components.lta || 0) + 
+                       (sal.components.fixedAllowance || 0)
+
+    return {
+      id: emp.id || emp.employeeId,
+      employeeId: emp.employeeId,
+      name: emp.name || `${emp.firstName} ${emp.lastName}`,
+      designation: emp.designation || 'Staff',
+      department: emp.department || 'Operations',
+      basicSalary: sal.components.basic,
+      allowances,
+      deductions: sal.totalDeductions,
+      netSalary: sal.netSalary,
+      grossSalary: sal.monthlyWage
+    }
+  })
+
+  const filtered = processedEmployees.filter((p) =>
+    p.name.toLowerCase().includes(search.toLowerCase()) ||
     p.department.toLowerCase().includes(search.toLowerCase())
   )
 
+  // Totals calculations
+  const totalGross = filtered.reduce((sum, p) => sum + p.grossSalary, 0)
+  const totalNet = filtered.reduce((sum, p) => sum + p.netSalary, 0)
+  const totalDeductions = filtered.reduce((sum, p) => sum + p.deductions, 0)
+
   const handleEditSalary = (name) => {
     toast.info(`Editing salary structure for ${name}...`)
+  }
+
+  const formatCurrency = (val) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(val)
+  }
+
+  if (isLoading) {
+    return (
+      <PageContainer title="Company Payroll Management" description="Syncing ledger databases...">
+        <div className="h-64 flex items-center justify-center text-slate-400">Loading company payroll...</div>
+      </PageContainer>
+    )
   }
 
   return (
@@ -49,24 +103,24 @@ export function AdminPayrollPage() {
         <Card className="border-l-4 border-l-purple-600">
           <CardHeader className="p-4">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Monthly Payroll</span>
-            <CardTitle className="text-2xl font-bold mt-1 text-slate-900">$319,500.00</CardTitle>
-            <CardDescription className="text-xs">Gross disbursement across 142 records</CardDescription>
+            <CardTitle className="text-2xl font-bold mt-1 text-slate-900">{formatCurrency(totalGross)}</CardTitle>
+            <CardDescription className="text-xs">Gross disbursement across {filtered.length} records</CardDescription>
           </CardHeader>
         </Card>
 
         <Card className="border-l-4 border-l-emerald-600">
           <CardHeader className="p-4">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Net Salary Disbursed</span>
-            <CardTitle className="text-2xl font-bold mt-1 text-emerald-700">$274,800.00</CardTitle>
-            <CardDescription className="text-xs">After tax & health withholdings</CardDescription>
+            <CardTitle className="text-2xl font-bold mt-1 text-emerald-700">{formatCurrency(totalNet)}</CardTitle>
+            <CardDescription className="text-xs">After EPF & Professional Tax deductions</CardDescription>
           </CardHeader>
         </Card>
 
         <Card className="border-l-4 border-l-blue-600">
           <CardHeader className="p-4">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Statutory Deductions</span>
-            <CardTitle className="text-2xl font-bold mt-1 text-blue-700">$44,700.00</CardTitle>
-            <CardDescription className="text-xs">Federal tax & benefits held</CardDescription>
+            <CardTitle className="text-2xl font-bold mt-1 text-blue-700">{formatCurrency(totalDeductions)}</CardTitle>
+            <CardDescription className="text-xs">Provident fund & Professional Tax held</CardDescription>
           </CardHeader>
         </Card>
       </div>
@@ -82,7 +136,9 @@ export function AdminPayrollPage() {
               leftIcon={<Search className="h-4 w-4" />}
             />
           </div>
-          <Button variant="default" size="sm">Run Batch Calculation</Button>
+          <Button variant="default" size="sm" onClick={() => toast.success('Payroll batch calculation completed successfully.')}>
+            Run Batch Calculation
+          </Button>
         </CardContent>
       </Card>
 
@@ -113,17 +169,17 @@ export function AdminPayrollPage() {
                 <TableRow key={p.id}>
                   <TableCell className="font-semibold text-slate-900">
                     <div>
-                      <span>{p.employeeName}</span>
-                      <span className="text-[11px] block font-normal text-slate-400">{p.designation}</span>
+                      <span>{p.name}</span>
+                      <span className="text-[11px] block font-normal text-slate-400">{p.designation} (ID: {p.employeeId})</span>
                     </div>
                   </TableCell>
                   <TableCell>{p.department}</TableCell>
-                  <TableCell className="font-mono text-xs">${p.basicSalary.toLocaleString()}</TableCell>
-                  <TableCell className="font-mono text-xs text-emerald-600">+${p.allowances.toLocaleString()}</TableCell>
-                  <TableCell className="font-mono text-xs text-red-600">-${p.deductions.toLocaleString()}</TableCell>
-                  <TableCell className="font-mono text-xs font-bold text-slate-900">${p.netSalary.toLocaleString()}</TableCell>
+                  <TableCell className="font-mono text-xs">{formatCurrency(p.basicSalary)}</TableCell>
+                  <TableCell className="font-mono text-xs text-emerald-600">+{formatCurrency(p.allowances)}</TableCell>
+                  <TableCell className="font-mono text-xs text-red-600">-{formatCurrency(p.deductions)}</TableCell>
+                  <TableCell className="font-mono text-xs font-bold text-slate-900">{formatCurrency(p.netSalary)}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon-sm" onClick={() => handleEditSalary(p.employeeName)} title="Edit Salary">
+                    <Button variant="ghost" size="icon-sm" onClick={() => handleEditSalary(p.name)} title="Edit Salary">
                       <Edit2 className="h-3.5 w-3.5 text-slate-600" />
                     </Button>
                   </TableCell>

@@ -212,7 +212,7 @@ export function EmployeeProfilePage() {
   }
 
   const userRole = user?.role || ROLES.EMPLOYEE
-  const isHRorAdmin = userRole === ROLES.ADMIN || userRole === ROLES.HR
+  const isAdmin = userRole === ROLES.ADMIN
 
   // Recalculate salary details based on metadata base pay
   const salaryDetails = calculateSalaryComponents(metadata?.monthlyWage || 75000)
@@ -268,10 +268,10 @@ export function EmployeeProfilePage() {
       </Card>
 
       <Tabs defaultValue="resume" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 max-w-lg">
+        <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'} max-w-lg`}>
           <TabsTrigger value="resume">Resume</TabsTrigger>
           <TabsTrigger value="private">Private Info</TabsTrigger>
-          {isHRorAdmin && <TabsTrigger value="salary">Salary Info</TabsTrigger>}
+          {isAdmin && <TabsTrigger value="salary">Salary Info</TabsTrigger>}
           <TabsTrigger value="security">Security</TabsTrigger>
         </TabsList>
 
@@ -538,8 +538,8 @@ export function EmployeeProfilePage() {
           </Card>
         </TabsContent>
 
-        {/* Tab 3: Salary Info (HR or Admin only) */}
-        {isHRorAdmin && (
+        {/* Tab 3: Salary Info (Admin only) */}
+        {isAdmin && (
           <TabsContent value="salary" className="pt-4">
             <Card className="bg-white border-slate-200 shadow-xs">
               <CardHeader>

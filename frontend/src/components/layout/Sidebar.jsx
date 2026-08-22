@@ -97,50 +97,98 @@ export function Sidebar() {
       )}
 
       {/* Navigation List */}
-      <div className="flex-1 overflow-y-auto py-3 px-3 space-y-1">
-        <div className={cn('text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2', sidebarCollapsed && 'sr-only')}>
-          Navigation
+      <div className="flex-1 overflow-y-auto py-3 px-3 space-y-4">
+        {/* Primary Navigation */}
+        <div className="space-y-1">
+          <div className={cn('text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-1.5', sidebarCollapsed && 'sr-only')}>
+            Primary
+          </div>
+          {navItems.filter(item => item.category === 'primary').map((item) => {
+            const Icon = item.icon
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={item.exact}
+                className={({ isActive }) =>
+                  cn(
+                    'group flex items-center gap-3 rounded-md px-3 py-2 text-xs sm:text-sm font-medium transition-all duration-150',
+                    isActive
+                      ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200/60 shadow-2xs'
+                      : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900',
+                    sidebarCollapsed && 'justify-center px-2 py-2.5'
+                  )
+                }
+                title={sidebarCollapsed ? item.label : undefined}
+              >
+                {({ isActive }) => (
+                  <>
+                    <Icon
+                      className={cn(
+                        'h-4 w-4 shrink-0 transition-colors',
+                        isActive ? 'text-blue-700' : 'text-slate-500 group-hover:text-slate-700'
+                      )}
+                    />
+                    {!sidebarCollapsed && (
+                      <span className="flex-1 truncate">{item.label}</span>
+                    )}
+                    {!sidebarCollapsed && item.badge && (
+                      <span className="rounded-full bg-blue-600 text-white text-[9px] font-bold px-1.5 py-0.2 tracking-wider uppercase">
+                        {item.badge}
+                      </span>
+                    )}
+                  </>
+                )}
+              </NavLink>
+            )
+          })}
         </div>
 
-        {navItems.map((item) => {
-          const Icon = item.icon
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.exact}
-              className={({ isActive }) =>
-                cn(
-                  'group flex items-center gap-3 rounded-md px-3 py-2 text-xs sm:text-sm font-medium transition-all duration-150',
-                  isActive
-                    ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200/60 shadow-2xs'
-                    : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900',
-                  sidebarCollapsed && 'justify-center px-2 py-2.5'
-                )
-              }
-              title={sidebarCollapsed ? item.label : undefined}
-            >
-              {({ isActive }) => (
-                <>
-                  <Icon
-                    className={cn(
-                      'h-4 w-4 shrink-0 transition-colors',
-                      isActive ? 'text-blue-700' : 'text-slate-500 group-hover:text-slate-700'
+        {/* Secondary Navigation */}
+        <div className="space-y-1">
+          <div className={cn('text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-1.5', sidebarCollapsed && 'sr-only')}>
+            Utilities
+          </div>
+          {navItems.filter(item => item.category === 'secondary').map((item) => {
+            const Icon = item.icon
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={item.exact}
+                className={({ isActive }) =>
+                  cn(
+                    'group flex items-center gap-3 rounded-md px-3 py-2 text-xs sm:text-sm font-medium transition-all duration-150',
+                    isActive
+                      ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200/60 shadow-2xs'
+                      : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900',
+                    sidebarCollapsed && 'justify-center px-2 py-2.5'
+                  )
+                }
+                title={sidebarCollapsed ? item.label : undefined}
+              >
+                {({ isActive }) => (
+                  <>
+                    <Icon
+                      className={cn(
+                        'h-4 w-4 shrink-0 transition-colors',
+                        isActive ? 'text-blue-700' : 'text-slate-500 group-hover:text-slate-700'
+                      )}
+                    />
+                    {!sidebarCollapsed && (
+                      <span className="flex-1 truncate">{item.label}</span>
                     )}
-                  />
-                  {!sidebarCollapsed && (
-                    <span className="flex-1 truncate">{item.label}</span>
-                  )}
-                  {!sidebarCollapsed && item.badge && (
-                    <span className="rounded-full bg-blue-600 text-white text-[9px] font-bold px-1.5 py-0.2 tracking-wider uppercase">
-                      {item.badge}
-                    </span>
-                  )}
-                </>
-              )}
-            </NavLink>
-          )
-        })}
+                    {!sidebarCollapsed && item.badge && (
+                      <span className="rounded-full bg-blue-600 text-white text-[9px] font-bold px-1.5 py-0.2 tracking-wider uppercase">
+                        {item.badge}
+                      </span>
+                    )}
+                  </>
+                )}
+              </NavLink>
+            )
+          })}
+        </div>
       </div>
 
       {/* Footer Profile & Logout */}

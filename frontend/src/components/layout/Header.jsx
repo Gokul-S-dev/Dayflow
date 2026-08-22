@@ -136,43 +136,46 @@ export function Header() {
 
       {/* Right Section: Role Preview Switcher + User Avatar Dropdown */}
       <div className="flex items-center gap-3">
-        {/* Role Preview Switcher */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs gap-1.5 h-8 border-slate-200 bg-slate-50/80 hover:bg-slate-100"
-            >
-              <Shield className="h-3.5 w-3.5 text-blue-600" />
-              <span className="font-semibold text-slate-700 hidden sm:inline">Role:</span>
-              <span className="text-blue-700 font-bold">{ROLE_LABELS[role] || role}</span>
-              <ChevronDown className="h-3 w-3 text-slate-400" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="right" className="w-48">
-            <DropdownMenuLabel>Preview Role As</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => handleRoleChange(ROLES.EMPLOYEE)}>
-              <span className={role === ROLES.EMPLOYEE ? 'font-bold text-blue-600' : ''}>
-                Employee
-              </span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleRoleChange(ROLES.HR)}>
-              <span className={role === ROLES.HR ? 'font-bold text-blue-600' : ''}>
-                HR Manager
-              </span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleRoleChange(ROLES.ADMIN)}>
-              <span className={role === ROLES.ADMIN ? 'font-bold text-purple-600' : ''}>
-                Administrator
-              </span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate(ROUTES.DEV.DESIGN_SYSTEM)}>
-              <Layers className="h-3.5 w-3.5 text-slate-500" /> Design Tokens Preview
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Role Preview Switcher (Only visible in Development mode) */}
+        {import.meta.env.DEV && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs gap-1.5 h-8 border-slate-200 bg-slate-50/80 hover:bg-slate-100"
+              >
+                <Shield className="h-3.5 w-3.5 text-blue-600" />
+                <span className="font-semibold text-slate-700 hidden sm:inline">Role:</span>
+                <span className="text-blue-700 font-bold">{ROLE_LABELS[role] || role}</span>
+                <ChevronDown className="h-3 w-3 text-slate-400" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="right" className="w-48">
+              <DropdownMenuLabel>Preview Role As</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => handleRoleChange(ROLES.EMPLOYEE)}>
+                <span className={role === ROLES.EMPLOYEE ? 'font-bold text-blue-600' : ''}>
+                  Employee
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleRoleChange(ROLES.HR)}>
+                <span className={role === ROLES.HR ? 'font-bold text-blue-600' : ''}>
+                  HR Manager
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleRoleChange(ROLES.ADMIN)}>
+                <span className={role === ROLES.ADMIN ? 'font-bold text-purple-600' : ''}>
+                  Administrator
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate(ROUTES.DEV.DESIGN_SYSTEM)}>
+                <Layers className="h-3.5 w-3.5 text-slate-500" /> Design Tokens Preview
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
 
         {/* User Avatar Menu Dropdown */}
         <DropdownMenu>

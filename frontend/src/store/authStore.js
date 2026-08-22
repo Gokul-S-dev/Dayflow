@@ -1,82 +1,43 @@
 import { create } from 'zustand'
 import { ROLES } from '@/constants/roles'
 
-const DEMO_USERS = {
-  [ROLES.ADMIN]: {
-    id: 'usr_admin_01',
-    name: 'Alexandra Vance',
-    email: 'alexandra.vance@dayflow.io',
-    role: ROLES.ADMIN,
-    department: 'People Operations & Leadership',
-    avatar: null,
-  },
-  [ROLES.HR]: {
-    id: 'usr_hr_01',
-    name: 'Marcus Chen',
-    email: 'marcus.chen@dayflow.io',
-    role: ROLES.HR,
-    department: 'Human Resources',
-    avatar: null,
-  },
-  [ROLES.EMPLOYEE]: {
-    id: 'usr_emp_01',
-    name: 'Sarah Jenkins',
-    email: 'sarah.jenkins@dayflow.io',
-    role: ROLES.EMPLOYEE,
-    department: 'Engineering',
-    avatar: null,
-  },
-}
-
 export const useAuthStore = create((set, get) => ({
   isAuthenticated: false,
   token: null,
   user: null,
   role: null,
+  requiresPasswordChange: false,
 
   /**
-   * Set user and token after successful login
+   * Set user and token after successful login.
+   * Stores requiresPasswordChange flag returned from backend.
    */
-  setAuth: ({ user, token }) => {
+  setAuth: ({ user, token, requiresPasswordChange = false }) => {
     set({
       isAuthenticated: true,
       user,
       token,
       role: user?.role || ROLES.EMPLOYEE,
+      requiresPasswordChange: Boolean(requiresPasswordChange),
     })
   },
 
   /**
-   * Role switcher for development preview and testing
+   * Clear the password-change requirement after successful password change.
+   */
+  clearPasswordChangeFlag: () => {
+    set({ requiresPasswordChange: false })
+  },
+
+  /**
+   * Role switcher for development preview and testing (DEV only).
    */
   setRole: (newRole) => {
-    const demoUser = DEMO_USERS[newRole] || {
-      id: 'usr_custom',
-      name: 'Custom User',
-      email: 'user@dayflow.io',
-      role: newRole,
-      department: 'Operations',
-    }
-    set({
-      role: newRole,
-      user: demoUser,
-      isAuthenticated: true,
-    })
+    set({ role: newRole })
   },
 
   /**
-   * Toggle authentication status for testing ProtectedRoute
-   */
-  toggleAuth: () => {
-    const current = get().isAuthenticated
-    set({
-      isAuthenticated: !current,
-      token: !current ? 'mock-jwt-token-for-dev' : null,
-    })
-  },
-
-  /**
-   * Clear auth session
+   * Clear auth session on logout.
    */
   logout: () => {
     set({
@@ -84,6 +45,7 @@ export const useAuthStore = create((set, get) => ({
       user: null,
       token: null,
       role: null,
+      requiresPasswordChange: false,
     })
   },
 }))

@@ -6,7 +6,9 @@ export const ROUTES = {
     LANDING: '/',
     LOGIN: '/login',
     SIGNUP: '/signup',
+    COMPANY_SIGNUP: '/company-signup',
     VERIFY_EMAIL: '/verify-email',
+    CHANGE_PASSWORD: '/change-password',
   },
   EMPLOYEE: {
     ROOT: '/employee',

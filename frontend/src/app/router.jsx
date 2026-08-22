@@ -6,12 +6,13 @@ import { ProtectedRoute } from '@/routes/ProtectedRoute'
 import { RoleRoute } from '@/routes/RoleRoute'
 import { AppShell } from '@/components/layout/AppShell'
 
-// Public Feature Pages
+// Public / Auth Feature Pages
 import { LandingPage } from '@/features/public/pages/LandingPage'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { SignupPage } from '@/features/auth/pages/SignupPage'
 import { CompanySignupPage } from '@/features/auth/pages/CompanySignupPage'
 import { VerifyEmailPage } from '@/features/auth/pages/VerifyEmailPage'
+import { ChangePasswordPage } from '@/features/auth/pages/ChangePasswordPage'
 
 // Employee Feature Pages
 import { EmployeeDashboardPage } from '@/features/employee/pages/EmployeeDashboardPage'
@@ -29,11 +30,11 @@ import { AdminLeavePage } from '@/features/admin/pages/AdminLeavePage'
 import { AdminPayrollPage } from '@/features/admin/pages/AdminPayrollPage'
 import { AdminIntelligencePage } from '@/features/intelligence/pages/AdminIntelligencePage'
 
-// Design System Showcase
+// Design System Showcase (dev only)
 import { DesignSystemShowcase } from '@/components/DesignSystemShowcase'
 
 export const router = createBrowserRouter([
-  // Public Routes
+  // ── Public / Unauthenticated Routes ───────────────────────────────
   {
     path: ROUTES.PUBLIC.LANDING,
     element: <LandingPage />,
@@ -43,23 +44,35 @@ export const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
+    // Employee account activation (for employees provisioned by HR/Admin)
     path: ROUTES.PUBLIC.SIGNUP,
     element: <SignupPage />,
   },
   {
-    path: '/company-signup',
+    path: ROUTES.PUBLIC.COMPANY_SIGNUP,
     element: <CompanySignupPage />,
   },
   {
     path: ROUTES.PUBLIC.VERIFY_EMAIL,
     element: <VerifyEmailPage />,
   },
+
+  // ── Change Password (requires auth but no AppShell — standalone page) ──
+  {
+    path: ROUTES.PUBLIC.CHANGE_PASSWORD,
+    element: (
+      <ProtectedRoute>
+        <ChangePasswordPage />
+      </ProtectedRoute>
+    ),
+  },
+
   {
     path: ROUTES.DEV.DESIGN_SYSTEM,
     element: <DesignSystemShowcase />,
   },
 
-  // Authenticated App Shell Root
+  // ── Authenticated App Shell Root ──────────────────────────────────
   {
     element: (
       <ProtectedRoute>
@@ -126,7 +139,11 @@ export const router = createBrowserRouter([
           },
           {
             path: 'payroll',
-            element: <AdminPayrollPage />,
+            element: (
+              <RoleRoute allowedRoles={[ROLES.ADMIN]}>
+                <AdminPayrollPage />
+              </RoleRoute>
+            ),
           },
           {
             path: 'intelligence',
@@ -137,7 +154,7 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // Fallback Route
+  // ── Fallback ───────────────────────────────────────────────────────
   {
     path: '*',
     element: <Navigate to={ROUTES.PUBLIC.LANDING} replace />,

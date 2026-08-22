@@ -22,26 +22,31 @@ export const EMPLOYEE_NAV_ITEMS = [
     path: ROUTES.EMPLOYEE.DASHBOARD,
     icon: LayoutDashboard,
     exact: true,
-  },
-  {
-    label: 'My Profile',
-    path: ROUTES.EMPLOYEE.PROFILE,
-    icon: User,
+    category: 'primary',
   },
   {
     label: 'Attendance',
     path: ROUTES.EMPLOYEE.ATTENDANCE,
     icon: Clock,
+    category: 'primary',
   },
   {
     label: 'Time Off',
     path: ROUTES.EMPLOYEE.LEAVE,
     icon: CalendarDays,
+    category: 'primary',
+  },
+  {
+    label: 'My Profile',
+    path: ROUTES.EMPLOYEE.PROFILE,
+    icon: User,
+    category: 'secondary',
   },
   {
     label: 'Payroll',
     path: ROUTES.EMPLOYEE.PAYROLL,
     icon: CreditCard,
+    category: 'secondary',
   },
 ]
 
@@ -53,36 +58,43 @@ export const ADMIN_NAV_ITEMS = [
     label: 'Employees',
     path: ROUTES.ADMIN.EMPLOYEES,
     icon: Users,
+    category: 'primary',
     roles: [ROLES.ADMIN, ROLES.HR],
   },
   {
     label: 'Attendance',
     path: ROUTES.ADMIN.ATTENDANCE,
     icon: Clock,
+    category: 'primary',
     roles: [ROLES.ADMIN, ROLES.HR],
   },
   {
     label: 'Time Off',
     path: ROUTES.ADMIN.LEAVE,
     icon: CalendarCheck,
+    category: 'primary',
     roles: [ROLES.ADMIN, ROLES.HR],
   },
   {
     label: 'Dashboard',
     path: ROUTES.ADMIN.DASHBOARD,
     icon: LayoutDashboard,
+    category: 'secondary',
     roles: [ROLES.ADMIN, ROLES.HR],
   },
   {
     label: 'Payroll',
     path: ROUTES.ADMIN.PAYROLL,
     icon: CreditCard,
-    roles: [ROLES.ADMIN, ROLES.HR],
+    category: 'secondary',
+    roles: [ROLES.ADMIN],
+    adminOnly: true,
   },
   {
     label: 'Intelligence',
     path: ROUTES.ADMIN.INTELLIGENCE,
     icon: BrainCircuit,
+    category: 'secondary',
     roles: [ROLES.ADMIN, ROLES.HR],
     badge: 'AI',
   },
@@ -92,8 +104,10 @@ export const ADMIN_NAV_ITEMS = [
  * Returns navigation items for a given role.
  */
 export function getNavigationForRole(role) {
-  if (role === ROLES.ADMIN || role === ROLES.HR) {
-    return ADMIN_NAV_ITEMS
+  const items = role === ROLES.ADMIN || role === ROLES.HR ? ADMIN_NAV_ITEMS : EMPLOYEE_NAV_ITEMS
+  if (role === ROLES.HR) {
+    return items.filter((item) => !item.adminOnly)
   }
-  return EMPLOYEE_NAV_ITEMS
+  return items;
 }
+

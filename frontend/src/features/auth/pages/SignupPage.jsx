@@ -75,15 +75,19 @@ export function SignupPage() {
       <div className="w-full max-w-md space-y-6">
         {/* Brand */}
         <div className="text-center space-y-2">
-          <div className="mx-auto flex h-14 w-full max-w-[200px] items-center justify-center rounded-xl bg-slate-100 border border-slate-200 text-slate-700 font-mono font-bold text-sm tracking-wider shadow-inner">
-            App/Web Logo
+          <div className="flex flex-col items-center space-y-2">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-purple-600 text-white font-bold font-mono text-lg shadow-md">
+              D
+            </div>
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight">DAYFLOW</h1>
+            <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Human Resource Management System</p>
           </div>
         </div>
 
         {/* Card */}
         <Card className="bg-white border-slate-200 text-slate-900 shadow-sm rounded-xl">
           <CardHeader className="border-b border-slate-100 pb-4">
-            <CardTitle className="text-base font-bold text-slate-900">Sign Up Page</CardTitle>
+            <CardTitle className="text-base font-bold text-slate-900">Activate your account</CardTitle>
             <CardDescription className="text-xs text-slate-500">
               Enter your credentials provisioned by HR or Admin to register.
             </CardDescription>
@@ -91,7 +95,7 @@ export function SignupPage() {
           <CardContent className="pt-5">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-1">
-                <Label className="text-slate-700 text-xs font-semibold tracking-wider block">Employee ID :-</Label>
+                <Label className="text-slate-700 text-xs font-semibold tracking-wider block">Employee ID</Label>
                 <Input
                   placeholder="OIJODO20260002"
                   leftIcon={<ShieldCheck className="h-4 w-4 text-slate-400" />}
@@ -103,7 +107,7 @@ export function SignupPage() {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-slate-700 text-xs font-semibold tracking-wider block">Email :-</Label>
+                <Label className="text-slate-700 text-xs font-semibold tracking-wider block">Email</Label>
                 <Input
                   placeholder="john.doe@example.com"
                   leftIcon={<Mail className="h-4 w-4 text-slate-400" />}
@@ -115,12 +119,12 @@ export function SignupPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-slate-700 text-xs font-semibold tracking-wider block">Assign Role :-</Label>
+                <Label className="text-slate-700 text-xs font-semibold tracking-wider block">Assign Role</Label>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setValue('role', 'EMPLOYEE')}
-                    className={`flex-1 py-2 px-3 rounded-xl border text-xs font-semibold transition-all ${
+                    className={`flex-1 py-2 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                       selectedRole === 'EMPLOYEE'
                         ? 'bg-purple-50 border-purple-200 text-purple-700 shadow-sm'
                         : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -131,7 +135,7 @@ export function SignupPage() {
                   <button
                     type="button"
                     onClick={() => setValue('role', 'HR')}
-                    className={`flex-1 py-2 px-3 rounded-xl border text-xs font-semibold transition-all ${
+                    className={`flex-1 py-2 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                       selectedRole === 'HR'
                         ? 'bg-purple-50 border-purple-200 text-purple-700 shadow-sm'
                         : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -143,7 +147,7 @@ export function SignupPage() {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-slate-700 text-xs font-semibold tracking-wider block">Password :-</Label>
+                <Label className="text-slate-700 text-xs font-semibold tracking-wider block">Password</Label>
                 <Input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
@@ -152,7 +156,7 @@ export function SignupPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="text-slate-400 hover:text-slate-600 pointer-events-auto"
+                      className="text-slate-400 hover:text-slate-600 pointer-events-auto cursor-pointer"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -165,7 +169,7 @@ export function SignupPage() {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-slate-700 text-xs font-semibold tracking-wider block">Confirm Password :-</Label>
+                <Label className="text-slate-700 text-xs font-semibold tracking-wider block">Confirm Password</Label>
                 <Input
                   type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="••••••••"
@@ -174,7 +178,7 @@ export function SignupPage() {
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="text-slate-400 hover:text-slate-600 pointer-events-auto"
+                      className="text-slate-400 hover:text-slate-600 pointer-events-auto cursor-pointer"
                     >
                       {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>

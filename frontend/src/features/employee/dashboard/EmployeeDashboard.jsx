@@ -5,6 +5,8 @@ import { useAuthStore } from '@/store/authStore'
 import { odooEmployees } from '@/services/odoo/employees'
 import { odooAttendance } from '@/services/odoo/attendance'
 import { dashboardService } from '@/services/backend/dashboard.service'
+import { leaveService } from '@/services/backend/leave.service'
+import { attendanceService } from '@/services/backend/attendance.service'
 import { AttendanceControl } from './components/AttendanceControl'
 import { EmployeeGrid } from './components/EmployeeGrid'
 import { DashboardSkeleton } from './components/DashboardSkeleton'
@@ -34,6 +36,11 @@ export function EmployeeDashboard() {
   const [isPunching, setIsPunching] = useState(false)
   const [error, setError] = useState(null)
 
+  // Extra dashboard metrics
+  const [leaveBalances, setLeaveBalances] = useState(null)
+  const [nextLeaveStr, setNextLeaveStr] = useState('None')
+  const [attendanceRateStr, setAttendanceRateStr] = useState('95.0%')
+
   // View-only modal state for clicked employee card
   const [selectedEmp, setSelectedEmp] = useState(null)
 
@@ -41,9 +48,12 @@ export function EmployeeDashboard() {
     setIsLoading(true)
     setError(null)
     try {
-      const [dashRes, empListRes] = await Promise.allSettled([
+      const [dashRes, empListRes, leaveRes, leaveRequestsRes, attendanceLogsRes] = await Promise.allSettled([
         dashboardService.getEmployeeDashboard(),
         odooEmployees.getEmployees(),
+        leaveService.getLeaveBalances(),
+        leaveService.getLeaveRequests('ALL'),
+        attendanceService.getAttendanceLogs()
       ])
 
       if (dashRes.status === 'fulfilled') {
@@ -58,6 +68,71 @@ export function EmployeeDashboard() {
       } else {
         setEmployees([])
       }
+
+      if (leaveRes.status === 'fulfilled') {
+        setLeaveBalances(leaveRes.value)
+      }
+
+      // Calculate Next Leave Date
+      if (leaveRequestsRes.status === 'fulfilled') {
+        const approved = Array.isArray(leaveRequestsRes.value) ? leaveRequestsRes.value.filter(r => r.status === 'APPROVED') : []
+        const now = new Date()
+        now.setHours(0, 0, 0, 0)
+        
+        let closestLeave = null
+        let minDiff = Infinity
+        
+        approved.forEach(r => {
+          const start = new Date(r.startDate)
+          if (start >= now) {
+            const diff = start - now
+            if (diff < minDiff) {
+              minDiff = diff
+              closestLeave = r
+            }
+          }
+        })
+        
+        if (closestLeave) {
+          const dateObj = new Date(closestLeave.startDate)
+          const formatted = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          setNextLeaveStr(formatted)
+        } else {
+          setNextLeaveStr('None')
+        }
+      }
+
+      // Calculate Attendance Rate
+      if (attendanceLogsRes.status === 'fulfilled') {
+        const logs = Array.isArray(attendanceLogsRes.value) ? attendanceLogsRes.value : []
+        const currentMonth = new Date().getMonth()
+        const currentYear = new Date().getFullYear()
+        
+        const monthLogs = logs.filter(log => {
+          if (!log.date) return false
+          const d = new Date(log.date)
+          return d.getMonth() === currentMonth && d.getFullYear() === currentYear
+        })
+        
+        const presentCount = monthLogs.filter(log => log.status === 'CHECKED_OUT' || log.status === 'CHECKED_IN').length
+        
+        // Calculate weekdays in month
+        let workingDaysCount = 0
+        const d = new Date(currentYear, currentMonth, 1)
+        while (d.getMonth() === currentMonth) {
+          const day = d.getDay()
+          if (day !== 0 && day !== 6) workingDaysCount++
+          d.setDate(d.getDate() + 1)
+        }
+        
+        if (workingDaysCount > 0) {
+          const rate = Math.round((presentCount / workingDaysCount) * 100)
+          setAttendanceRateStr(`${rate}%`)
+        } else {
+          setAttendanceRateStr('100%')
+        }
+      }
+
     } catch (err) {
       setError(err.message || 'Unable to load employee information.')
     } finally {
@@ -133,7 +208,7 @@ export function EmployeeDashboard() {
   return (
     <PageContainer
       title={`Good morning, ${profile.name ? profile.name.split(' ')[0] : 'Employee'}`}
-      description={`Workday portal for ${profile.name || 'Staff'} (ID: ${profile.id || 'N/A'})`}
+      description="Here's your day at a glance."
       badge={<Badge variant="purple" dot>Employee Portal</Badge>}
       breadcrumbs={[
         { label: 'Portal' },
@@ -147,7 +222,11 @@ export function EmployeeDashboard() {
           onCheckIn={handleCheckIn}
           onCheckOut={handleCheckOut}
           isLoading={isPunching}
+          leaveBalance={`${leaveBalances?.paid?.available ?? 16} Days`}
+          nextLeave={nextLeaveStr}
+          attendanceRate={attendanceRateStr}
         />
+
 
         {/* Dashboard Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
