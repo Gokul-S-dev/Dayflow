@@ -203,3 +203,25 @@ Content-Type: application/json
 # Logout User
 POST {{baseUrl}}/auth/logout
 Authorization: Bearer {{employeeToken}}
+
+###
+
+### ----------------------------------------------------
+### 4. DASHBOARD ENDPOINTS
+### ----------------------------------------------------
+
+# Retrieve Personal Employee Dashboard
+GET {{baseUrl}}/dashboard/employee
+Authorization: Bearer {{employeeToken}}
+
+###
+
+# Retrieve Organization Admin Dashboard (HR / Admin role required)
+GET {{baseUrl}}/dashboard/admin
+Authorization: Bearer {{hrToken}}
+
+###
+
+# HR List/Search Employees (Filtered to caller company, with search & pagination)
+GET {{baseUrl}}/employees?search=John&page=1&limit=5
+Authorization: Bearer {{hrToken}}

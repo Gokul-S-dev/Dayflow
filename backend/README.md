@@ -116,6 +116,8 @@ You can also test the endpoints manually or interactively using the [`api_tests.
 | **GET** | `/api/v1/employees` | Yes | Admin, HR | Retrieve all employees |
 | **GET** | `/api/v1/employees/:id` | Yes | Role-based | Retrieve specific employee details |
 | **PATCH** | `/api/v1/employees/:id` | Yes | Role-based | Update employee details (filtered by role constraints) |
+| **GET** | `/api/v1/dashboard/employee` | Yes | All | Retrieve personal dashboard metrics |
+| **GET** | `/api/v1/dashboard/admin` | Yes | Admin, HR | Retrieve company-wide admin dashboard |
 
 ---
 
@@ -313,3 +315,115 @@ You can also test the endpoints manually or interactively using the [`api_tests.
 - **Authentication**: Required (JWT Bearer Token)
 - **Role Permissions**: `ADMIN`, `HR`, or the target `EMPLOYEE` themselves.
 - **Description**: Update profile details.
+
+---
+
+### Dashboard APIs
+
+---
+
+#### GET /api/v1/dashboard/employee
+
+- **Authentication**: Required (JWT Bearer Token)
+- **Role Permissions**: Any authenticated user
+- **Description**: Compiles personal employee metrics: profile details, current daily attendance status, leaves count summary, and a combined feed of the 5 most recent activities (clock-ins/outs, leave submissions/approvals).
+- **Success Response**:
+  - **Status Code**: `200 OK`
+  - **Body**:
+    ```json
+    {
+      "success": true,
+      "message": "Employee dashboard data retrieved successfully",
+      "data": {
+        "profile": {
+          "id": "OIJODO20260002",
+          "name": "John Doe",
+          "email": "john.doe@example.com",
+          "phone": "9876543210",
+          "role": "EMPLOYEE",
+          "avatar": null,
+          "company": "Odoo India Signup Test",
+          "joiningDate": "2026-08-22T00:00:00.000Z"
+        },
+        "attendance": {
+          "status": "CHECKED_IN",
+          "checkInTime": "2026-08-22T09:12:00.000Z",
+          "checkOutTime": null
+        },
+        "leave": {
+          "pending": 1,
+          "approved": 1,
+          "rejected": 0
+        },
+        "recentActivity": [
+          {
+            "type": "ATTENDANCE",
+            "message": "Checked in",
+            "date": "2026-08-22T09:12:00.000Z"
+          }
+        ],
+        "alerts": []
+      }
+    }
+    ```
+
+---
+
+#### GET /api/v1/dashboard/admin
+
+- **Authentication**: Required (JWT Bearer Token)
+- **Role Permissions**: `ADMIN` or `HR` only
+- **Description**: Compiles company-wide employee metrics: summary counts (total, present today, absent today, on leave today, pending leaves), detailed employee lists with status flags, pending leaves list, and recent daily attendance. All calculations are dynamically segmented by `companyId`.
+- **Success Response**:
+  - **Status Code**: `200 OK`
+  - **Body**:
+    ```json
+    {
+      "success": true,
+      "message": "Admin dashboard data retrieved successfully",
+      "data": {
+        "summary": {
+          "totalEmployees": 1,
+          "presentToday": 1,
+          "absentToday": 0,
+          "onLeaveToday": 0,
+          "pendingLeaveRequests": 1
+        },
+        "employees": [
+          {
+            "id": "6a8929ff5383a54c286d4e61",
+            "employeeId": "OIJODO20260002",
+            "name": "John Doe",
+            "email": "john.doe@example.com",
+            "avatar": null,
+            "attendanceStatus": "CHECKED_IN"
+          }
+        ],
+        "pendingLeaves": [
+          {
+            "id": "6a892a005383a54c286d4e64",
+            "employee": {
+              "id": "6a8929ff5383a54c286d4e61",
+              "name": "John Doe"
+            },
+            "leaveType": "SICK",
+            "startDate": "2026-08-23T00:00:00.000Z",
+            "endDate": "2026-08-23T00:00:00.000Z",
+            "status": "PENDING"
+          }
+        ],
+        "recentAttendance": [
+          {
+            "id": "6a892a005383a54c286d4e62",
+            "employee": {
+              "id": "6a8929ff5383a54c286d4e61",
+              "name": "John Doe"
+            },
+            "checkInTime": "2026-08-22T09:12:00.000Z",
+            "checkOutTime": null,
+            "status": "CHECKED_IN"
+          }
+        ]
+      }
+    }
+    ```
