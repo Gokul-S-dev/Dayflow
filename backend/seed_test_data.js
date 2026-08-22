@@ -32,7 +32,7 @@ const seed = async () => {
 
     // Create HR User
     const hr = await User.create({
-      employeeId: "HR-1001",
+      employeeId: "OIHRMA20260001",
       companyId: company._id,
       firstName: "Hr",
       lastName: "Manager",
@@ -43,7 +43,7 @@ const seed = async () => {
       joiningDate: new Date(),
       isActive: true,
       isFirstLogin: false,
-      loginId: "HR-1001",
+      loginId: "OIHRMA20260001",
       emailVerified: true,
       accountStatus: "APPROVED",
       department: "Human Resources",
@@ -53,7 +53,7 @@ const seed = async () => {
 
     // Create Employees
     const emp1 = await User.create({
-      employeeId: "EMP-1001",
+      employeeId: "OIEMUS20260001",
       companyId: company._id,
       firstName: "Employee",
       lastName: "User",
@@ -64,7 +64,7 @@ const seed = async () => {
       joiningDate: new Date(),
       isActive: true,
       isFirstLogin: false,
-      loginId: "EMP-1001",
+      loginId: "OIEMUS20260001",
       emailVerified: true,
       accountStatus: "APPROVED",
       department: "Engineering",
@@ -72,7 +72,7 @@ const seed = async () => {
     });
 
     const emp2 = await User.create({
-      employeeId: "EMP-1002",
+      employeeId: "OIELMO20260002",
       companyId: company._id,
       firstName: "Eleanor",
       lastName: "Morgan",
@@ -83,7 +83,7 @@ const seed = async () => {
       joiningDate: new Date(),
       isActive: true,
       isFirstLogin: false,
-      loginId: "EMP-1002",
+      loginId: "OIELMO20260002",
       emailVerified: true,
       accountStatus: "APPROVED",
       department: "Engineering",
@@ -91,7 +91,7 @@ const seed = async () => {
     });
 
     const emp3 = await User.create({
-      employeeId: "EMP-1003",
+      employeeId: "OIMACH20260003",
       companyId: company._id,
       firstName: "Marcus",
       lastName: "Chen",
@@ -102,7 +102,7 @@ const seed = async () => {
       joiningDate: new Date(),
       isActive: true,
       isFirstLogin: false,
-      loginId: "EMP-1003",
+      loginId: "OIMACH20260003",
       emailVerified: true,
       accountStatus: "APPROVED",
       department: "Operations",
@@ -110,7 +110,7 @@ const seed = async () => {
     });
 
     const emp4 = await User.create({
-      employeeId: "EMP-1004",
+      employeeId: "OIAMLA20260004",
       companyId: company._id,
       firstName: "Amina",
       lastName: "Larsson",
@@ -121,7 +121,7 @@ const seed = async () => {
       joiningDate: new Date(),
       isActive: true,
       isFirstLogin: false,
-      loginId: "EMP-1004",
+      loginId: "OIAMLA20260004",
       emailVerified: true,
       accountStatus: "APPROVED",
       department: "Finance",
@@ -129,7 +129,7 @@ const seed = async () => {
     });
 
     const emp5 = await User.create({
-      employeeId: "EMP-1005",
+      employeeId: "OIALVA20260005",
       companyId: company._id,
       firstName: "Alexandra",
       lastName: "Vance",
@@ -140,7 +140,7 @@ const seed = async () => {
       joiningDate: new Date(),
       isActive: true,
       isFirstLogin: false,
-      loginId: "EMP-1005",
+      loginId: "OIALVA20260005",
       emailVerified: true,
       accountStatus: "APPROVED",
       department: "Human Resources",
